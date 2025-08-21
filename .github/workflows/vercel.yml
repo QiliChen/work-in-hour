@@ -33,6 +33,11 @@ jobs:
       - name: Pull Vercel env
         run: npx vercel pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
 
+      - name: Vercel build (generate .vercel/output)
+        run: npx vercel build --prod --token "${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ENV: production
+
       - name: Deploy to Vercel (prebuilt)
         run: npx vercel deploy --prebuilt --prod --token "${{ secrets.VERCEL_TOKEN }}"
 
