@@ -21,8 +21,8 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
     const items: Array<{ date: string; hours: number }> = [];
     // 2025-08-01 / 2025/08/01 / 2025年08月01日
     const dateRegex = /(\d{4})[\-\/年](\d{2})[\-\/月](\d{2})/;
-    // 12.4小时 / 12.4 小时 / 12.4h / 12h
-    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)(?=\s*(?:小时|小時|h|H)\b)?(?:\s*(?:小时|小時|h|H))?/i;
+    // 12.4小时 / 12.4 小时 / 12.4h / 12h（必须带单位，避免误匹配年份前两位“20”）
+    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)\s*(?:小时|小時|h|H)\b/i;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -44,7 +44,10 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
       }
 
       if (h && h[1]) {
-        const hours = parseFloat(h[1].replace(',', '.'));
+        let hours = parseFloat(h[1].replace(',', '.'));
+        // 合理区间约束，避免异常值
+        if (hours > 14) hours = 14;
+        if (hours < 0) hours = 0;
         if (!Number.isNaN(hours)) {
           items.push({ date, hours });
         }
