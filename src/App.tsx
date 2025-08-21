@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { parseISO } from 'date-fns';
 import WorkCalendar from './components/WorkCalendar';
-import WorkDayEditor from './components/WorkDayEditor';
 import WorkStats from './components/WorkStats';
 import type { WorkDay, WorkSettings } from './types';
 import { WorkTimeCalculator, defaultSettings } from './utils/workTimeCalculator';
@@ -20,8 +19,7 @@ function App() {
     return savedWorkDays ? JSON.parse(savedWorkDays) : [];
   });
   
-  const [editingDay, setEditingDay] = useState<WorkDay | null>(null);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  // 已由日历内部处理编辑弹窗
 
   const calculator = useMemo(() => new WorkTimeCalculator(settings), [settings]);
 
@@ -148,10 +146,7 @@ function App() {
 
   // 处理日历点击（已改为由子组件触发弹窗，不需要此函数）
 
-  // 保存编辑
-  const handleSaveEdit = (date: string, updates: Partial<WorkDay>) => {
-    handleUpdateWorkDay(date, updates);
-  };
+  // 兼容保留：由子组件直接调用 onUpdateWorkDay
 
   // 清除所有数据（调试用）
   const handleClearData = () => {
@@ -218,13 +213,7 @@ function App() {
         </div>
       </div>
 
-      {/* Work Day Editor Modal */}
-      <WorkDayEditor
-        workDay={editingDay}
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-        onSave={handleSaveEdit}
-      />
+      {/* 编辑功能由日历组件内置 */}
     </div>
   );
 }

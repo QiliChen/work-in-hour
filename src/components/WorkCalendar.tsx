@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { format, parseISO, getDay, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, startOfWeek, endOfWeek } from 'date-fns';
+import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import type { WorkDay, WorkSettings, WorkWeek } from '../types';
+import type { WorkDay, WorkSettings } from '../types';
 import { WorkTimeCalculator } from '../utils/workTimeCalculator';
 import { getHolidayNameSync, isWorkdayAdjustmentSync } from '../utils/holidays';
 
@@ -27,7 +27,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const [showHourInput, setShowHourInput] = useState(false);
   const [hourInput, setHourInput] = useState('');
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [actionMenuPosition, setActionMenuPosition] = useState({ x: 0, y: 0 });
+  // 菜单固定居中，无需坐标状态
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -97,7 +97,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     return 'empty';
   };
 
-  const handleDayClick = (date: Date, e: React.MouseEvent) => {
+  const handleDayClick = (date: Date) => {
     // 只有当前月份的日期才能点击
     if (!isCurrentMonth(date)) return;
     
@@ -272,7 +272,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
           return (
             <div
               key={index}
-              onClick={(e) => handleDayClick(date, e)}
+              onClick={() => handleDayClick(date)}
               className={`calendar-day ${status} ${!isCurrentMonthDate ? 'other-month' : ''} ${!isWorkDayDate && !isSaturdayDate && !isSundayDate ? 'weekend' : ''}`}
             >
               <div className="day-number">

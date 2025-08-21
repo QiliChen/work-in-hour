@@ -1,5 +1,5 @@
 import type { WorkDay, WorkSettings, WorkStats, MonthData, WorkWeek } from '../types';
-import { format, parseISO, getDay, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { format, parseISO, getDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { isHolidaySync, isWorkdayAdjustmentSync } from './holidays';
 
 export class WorkTimeCalculator {
@@ -31,7 +31,7 @@ export class WorkTimeCalculator {
   isSmallWeekDay(date: Date): boolean {
     if (!this.isSaturday(date)) return false; // 只有周六才可能是小周
     
-    const dateStr = format(date, 'yyyy-MM-dd');
+    // const dateStr = format(date, 'yyyy-MM-dd');
     
     // 查找该日期所在的周配置
     const weekConfig = this.settings.workWeeks.find(week => {
@@ -91,15 +91,15 @@ export class WorkTimeCalculator {
     const isWorkDay = this.isWorkDay(dateObj);
     const isSmallWeek = this.isSmallWeekDay(dateObj);
     const isSunday = this.isSunday(dateObj);
-    const isPublicHoliday = this.isPublicHoliday(dateObj);
-    const isWorkdayAdjustment = this.isWorkdayAdjustment(dateObj);
+    // 访问以决策 requiredHours
+    // 注：不需要提前结果，这里直接用 getRequiredHours 计算
     const requiredHours = this.getRequiredHours(dateObj);
 
     return {
       date,
-      hours: isWorkDay || isSmallWeek || isSunday || isWorkdayAdjustment ? hours : 0, // 工作日、小周周六、周日和调休工作日都可以记录工时
+      hours: isWorkDay || isSmallWeek || isSunday || this.isWorkdayAdjustment(dateObj) ? hours : 0, // 工作日、小周周六、周日和调休工作日都可以记录工时
       isSmallWeek,
-      isLeave: isWorkDay || isSmallWeek || isSunday || isWorkdayAdjustment ? isLeave : false, // 工作日、小周周六、周日和调休工作日都可以请假
+      isLeave: isWorkDay || isSmallWeek || isSunday || this.isWorkdayAdjustment(dateObj) ? isLeave : false, // 工作日、小周周六、周日和调休工作日都可以请假
       requiredHours,
       notes
     };

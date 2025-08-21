@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { WorkDay } from '../types';
+import type { WorkDay } from '../types';
 
 interface WorkDayEditorProps {
   workDay: WorkDay | null;

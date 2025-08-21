@@ -34,30 +34,7 @@ async function fetchHolidays(year: number): Promise<Holiday[]> {
   }
 }
 
-// 备用公假日数据
-function getFallbackHolidays(year: number): Holiday[] {
-  const holidays: Holiday[] = [];
-  
-  // 元旦
-  holidays.push({ date: `${year}-01-01`, name: '元旦', type: 'holiday' });
-  
-  // 清明节
-  holidays.push({ date: `${year}-04-04`, name: '清明节', type: 'holiday' });
-  holidays.push({ date: `${year}-04-05`, name: '清明节', type: 'holiday' });
-  holidays.push({ date: `${year}-04-06`, name: '清明节', type: 'holiday' });
-  
-  // 劳动节
-  for (let i = 1; i <= 5; i++) {
-    holidays.push({ date: `${year}-05-${i.toString().padStart(2, '0')}`, name: '劳动节', type: 'holiday' });
-  }
-  
-  // 国庆节
-  for (let i = 1; i <= 7; i++) {
-    holidays.push({ date: `${year}-10-${i.toString().padStart(2, '0')}`, name: '国庆节', type: 'holiday' });
-  }
-  
-  return holidays;
-}
+// 已移除备用本地数据，统一依赖远程+缓存
 
 // 获取指定年份的公假日数据
 export async function getHolidays(year: number): Promise<Holiday[]> {
