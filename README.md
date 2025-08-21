@@ -1,69 +1,51 @@
-# React + TypeScript + Vite
+# 工时管理助手（Work Hour Assistant）
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个面向个人/团队的工时记录与统计小工具。支持大小周、请假、法定节假日与调休，自动统计“应上/实上/差值”，并提供未来展望与按天输入。前端使用 React + TypeScript + Vite，静态部署到 Vercel / GitHub Pages。
 
-Currently, two official plugins are available:
+在线预览
+- Vercel（推荐）：部署后自动生成 Production 链接
+- GitHub Pages：`https://<your-username>.github.io/work-in-hour/`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+核心功能
+- 日历视图：显示整月（含上/下月占位），仅当月可点击
+- 小周设置：周六可标记为小周（8h），未标记视为休息
+- 请假：标记当天请假（实际 0h，仍计入应上时长）
+- 工时录入：对每天直接输入实际工时
+- 统计面板：已工作天数、总实上、总应上、差值、平均等
+- 未来展望：基于剩余工作日与小周天数，预估“+/-Xh”
+- 公共假期：使用 `holiday.cyi.me` 接口，含调休工作日（“补”徽标）
+- 本地持久化：localStorage 保存设置与数据
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+开发与运行
+```bash
+pnpm i # 或 npm i / yarn
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+构建与部署
+```bash
+# 生产构建
+npm run build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# GitHub Pages（子路径 /work-in-hour/）
+npm run build:pages
 ```
+
+CI/CD
+- Vercel：`.github/workflows/vercel.yml`（需要配置 VERCEL_TOKEN/ORG_ID/PROJECT_ID）
+- GitHub Pages：`.github/workflows/pages.yml`（自动构建 `dist/` 并发布）
+
+路径与资源
+- Pages 使用子路径 `/work-in-hour/`，已在 CI 中通过 `vite build --base=/work-in-hour/` 固化，避免资源 404
+- Vercel 使用根路径 `/`，无需特殊配置
+
+性能优化
+- 移除 `backdrop-filter`、减轻阴影与缩放、关闭 shimmer 动画，滚动更顺滑
+- 点击日期弹出菜单使用 `requestAnimationFrame` 居中渲染，避免闪跳
+
+接口与数据
+- 节假日来源：`holiday.cyi.me`（24h 本地缓存 + 并发去重）
+- 同步工具：`isHolidaySync/isWorkdayAdjustmentSync/getHolidayNameSync`
+
+许可证
+MIT
