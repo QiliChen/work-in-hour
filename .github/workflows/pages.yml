@@ -31,10 +31,7 @@ jobs:
         run: npm ci
 
       - name: Build (set base for GitHub Pages)
-        run: |
-          echo "GITHUB_PAGES=true" >> $GITHUB_ENV
-          echo "PAGES_BASE=/work-in-hour/" >> $GITHUB_ENV
-          npm run build
+        run: npm run build:pages
 
       - name: SPA fallback (404.html)
         run: cp dist/index.html dist/404.html
