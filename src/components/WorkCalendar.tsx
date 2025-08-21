@@ -78,6 +78,16 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
            date.getFullYear() === currentMonth.getFullYear();
   };
 
+  // 以下一帧再展示菜单，避免首次闪到点击位置再回到屏幕中间
+  const openMenuCentered = () => {
+    setShowActionMenu(false);
+    if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
+      window.requestAnimationFrame(() => setShowActionMenu(true));
+    } else {
+      setTimeout(() => setShowActionMenu(true), 0);
+    }
+  };
+
   const getDayStatus = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const workDay = workDayMap.get(dateStr);
@@ -112,9 +122,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
       onUpdateWorkDay(dateStr, newWorkDay);
     }
     
-    // 显示操作菜单 - 固定在屏幕中间
+    // 显示操作菜单 - 固定在屏幕中间（避免先渲染在点击处再跳到中间）
     setSelectedDate(dateStr);
-    setShowActionMenu(true);
+    openMenuCentered();
   };
 
   const handleToggleSmallWeek = () => {
