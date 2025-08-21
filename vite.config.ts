@@ -6,10 +6,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const useProxy = env.VITE_USE_PROXY === '1'
   const isPages = process.env.GITHUB_PAGES === 'true'
+  const pagesBase = process.env.PAGES_BASE || '/work-in-hour/'
 
   return {
     plugins: [react()],
-    base: isPages ? '/work-in-hour/' : '/',
+    base: isPages ? pagesBase : '/',
     server: useProxy
       ? {
           proxy: {

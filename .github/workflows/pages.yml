@@ -33,6 +33,7 @@ jobs:
       - name: Build (set base for GitHub Pages)
         run: |
           echo "GITHUB_PAGES=true" >> $GITHUB_ENV
+          echo "PAGES_BASE=/" >> $GITHUB_ENV
           npm run build
 
       - name: SPA fallback (404.html)
