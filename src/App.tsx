@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { parseISO } from 'date-fns';
 import WorkCalendar from './components/WorkCalendar';
+import OcrImporter from './components/OcrImporter';
 import WorkStats from './components/WorkStats';
 import type { WorkDay, WorkSettings } from './types';
 import { WorkTimeCalculator, defaultSettings } from './utils/workTimeCalculator';
@@ -188,6 +189,24 @@ function App() {
             onUpdateSettings={setSettings}
           />
         </div>
+
+        {/* OCR Importer */}
+        <OcrImporter
+          onImport={(items) => {
+            // 仅导入当前月份的记录；默认不覆盖已有 hours
+            const currentYear = currentMonth.getFullYear();
+            const currentMon = currentMonth.getMonth();
+            items.forEach(({ date, hours }) => {
+              const d = new Date(date);
+              if (d.getFullYear() === currentYear && d.getMonth() === currentMon) {
+                const existing = workDays.find(w => w.date === date);
+                if (!existing || (existing && !existing.hours)) {
+                  handleUpdateWorkDay(date, { hours });
+                }
+              }
+            });
+          }}
+        />
 
         {/* Quick Actions */}
         <div className="card quick-actions">
