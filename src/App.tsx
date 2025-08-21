@@ -192,19 +192,22 @@ function App() {
 
         {/* OCR Importer */}
         <OcrImporter
-          onImport={(items) => {
+          onImport={(items, overwrite) => {
             // 仅导入当前月份的记录；默认不覆盖已有 hours
             const currentYear = currentMonth.getFullYear();
             const currentMon = currentMonth.getMonth();
+            let imported = 0;
             items.forEach(({ date, hours }) => {
               const d = new Date(date);
               if (d.getFullYear() === currentYear && d.getMonth() === currentMon) {
                 const existing = workDays.find(w => w.date === date);
-                if (!existing || (existing && !existing.hours)) {
+                if (overwrite || !existing || (existing && !existing.hours)) {
                   handleUpdateWorkDay(date, { hours });
+                  imported += 1;
                 }
               }
             });
+            console.log(`OCR导入完成：${imported}/${items.length} 条写入（仅当前月）`);
           }}
         />
 

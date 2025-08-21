@@ -4,7 +4,7 @@ import Tesseract from 'tesseract.js';
 // no-op
 
 interface Props {
-  onImport: (items: Array<{ date: string; hours: number }>) => void;
+  onImport: (items: Array<{ date: string; hours: number }>, overwrite: boolean) => void;
 }
 
 // 简单OCR导入：支持形如 2025-08-01 或 2025/08/01，小时形如 11.3小时 / 11.3h
@@ -13,20 +13,37 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const [progress, setProgress] = useState<string>('');
   const [busy, setBusy] = useState<boolean>(false);
   const [lang, setLang] = useState<'chi_sim+eng' | 'eng'>('chi_sim+eng');
+  const [overwrite, setOverwrite] = useState<boolean>(false);
 
   const parseText = (text: string) => {
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const rawLines = text.split(/\r?\n/);
+    const lines = rawLines.map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
     const items: Array<{ date: string; hours: number }> = [];
-    const dateRegex = /(\d{4})[-/年](\d{2})[-/月](\d{2})/;
-    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)(?:\s*(?:小时|h|H))/i;
-    for (const line of lines) {
+    // 2025-08-01 / 2025/08/01 / 2025年08月01日
+    const dateRegex = /(\d{4})[\-\/年](\d{2})[\-\/月](\d{2})/;
+    // 12.4小时 / 12.4 小时 / 12.4h / 12h
+    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)(?=\s*(?:小时|小時|h|H)\b)?(?:\s*(?:小时|小時|h|H))?/i;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       const d = line.match(dateRegex);
-      const h = line.match(hoursRegex);
-      if (d && h) {
-        const y = d[1];
-        const m = d[2];
-        const dd = d[3];
-        const date = `${y}-${m}-${dd}`;
+      if (!d) continue;
+
+      const y = d[1];
+      const m = d[2];
+      const dd = d[3];
+      const date = `${y}-${m}-${dd}`;
+
+      // 先在同一行找小时，否则在接下来的两行内寻找最近的小时数
+      let h = line.match(hoursRegex);
+      if (!h) {
+        for (let j = 1; j <= 2 && i + j < lines.length; j++) {
+          const h2 = lines[i + j].match(hoursRegex);
+          if (h2) { h = h2; break; }
+        }
+      }
+
+      if (h && h[1]) {
         const hours = parseFloat(h[1].replace(',', '.'));
         if (!Number.isNaN(hours)) {
           items.push({ date, hours });
@@ -52,7 +69,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         },
       });
       const items = parseText(data.text);
-      onImport(items);
+      onImport(items, overwrite);
       setProgress(`完成，解析到 ${items.length} 条记录`);
     } catch (err) {
       setProgress('识别失败');
@@ -70,7 +87,11 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
           <div style={{ fontWeight: 800 }}>OCR 导入（本地识别）</div>
           <div style={{ fontSize: 12, color: '#64748b' }}>上传手机工时截图，自动解析“日期 + 小时”。</div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475569' }}>
+            <input type="checkbox" checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} />
+            覆盖已有工时
+          </label>
           <select value={lang} onChange={(e) => setLang(e.target.value as any)} className="hour-input" style={{ width: 160, margin: 0 }}>
             <option value="chi_sim+eng">中文（简体）+ 英文</option>
             <option value="eng">英文</option>
