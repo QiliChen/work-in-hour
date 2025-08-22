@@ -871,6 +871,15 @@ body {
   color: #dc2626;
 }
 
+/* Outlook enhanced */
+.outlook-strong {
+  font-weight: 800;
+}
+.outlook-hint {
+  color: #64748b;
+  margin-left: 6px;
+}
+
 /* 动画 */
 @keyframes fadeInDown {
   from {

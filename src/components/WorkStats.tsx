@@ -127,23 +127,18 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
                   ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours >= 0 ? 'positive' : 'negative'
                 }`}>
                   {(() => {
-                    // 采用防重复公式：
-                    // 总容量 = 明天及以后 required 求和 + 今天修正
-                    // 今天修正：仅当今天未填写且有要求、且非请假时，取 11/8；其余情况取 0（避免与 remainingHours 的 todayActual 抵消后再被重复加一次）
-                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0)
-                      ? stats.todayPred
-                      : 0;
-                    const adjustedCapacity = stats.futureRequiredSum + todayFix;
-
-                    const totalDiff = adjustedCapacity - stats.remainingHours;
-                    let displayText = formatHours(totalDiff) + 'h';
-
-                    // 文案提示：今天的计入策略
-                    if (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) {
-                      displayText += `(今天预估+${formatHours(stats.todayPred)}h)`;
-                    }
-
-                    return displayText;
+                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
+                    const totalDiff = stats.futureRequiredSum + todayFix - stats.remainingHours;
+                    const main = `${formatHours(totalDiff)}h`;
+                    const hint = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0)
+                      ? `(今天预估+${formatHours(stats.todayPred)}h)`
+                      : (stats.todayActualHours > 0 && !stats.todayIsLeave ? `(今天+${formatHours(stats.todayActualHours)}h)` : '');
+                    return (
+                      <>
+                        <span className="outlook-strong">{main}</span>
+                        {hint && <span className="outlook-hint"> {hint}</span>}
+                      </>
+                    );
                   })()}
                 </span>
               </div>

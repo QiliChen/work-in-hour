@@ -209,6 +209,7 @@ function App() {
                 const currentMon = currentMonth.getMonth();
                 let imported = 0;
                 const smallWeekDates: string[] = [];
+                const recognizedSet = new Set<string>();
                 items.forEach(({ date, hours }) => {
                   const d = new Date(date);
                   if (d.getFullYear() === currentYear && d.getMonth() === currentMon) {
@@ -216,6 +217,7 @@ function App() {
                     if (overwrite || !existing || (existing && !existing.hours)) {
                       handleUpdateWorkDay(date, { hours });
                       imported += 1;
+                      recognizedSet.add(date);
                     }
                     const dayOfWeek = d.getDay();
                     if (dayOfWeek === 6 && hours >= 8) {
@@ -253,6 +255,24 @@ function App() {
                 setShowOcr(false);
                 // 成功提示（面包条）
                 showToast(`OCR 导入成功：${imported}/${items.length} 条`);
+                // 自动请假：在识别日期范围内的工作日若无记录则标记为请假
+                if (recognizedSet.size > 0) {
+                  const sorted = Array.from(recognizedSet).sort();
+                  const first = new Date(sorted[0]);
+                  const last = new Date(sorted[sorted.length - 1]);
+                  const calc = new WorkTimeCalculator(settings);
+                  for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+                    const ds = d.toISOString().split('T')[0];
+                    if (recognizedSet.has(ds)) continue;
+                    const req = calc.getRequiredHours(d);
+                    if (req > 0) {
+                      const exist = workDays.find(w => w.date === ds);
+                      if (!exist || !exist.hours) {
+                        handleUpdateWorkDay(ds, { isLeave: true, hours: 0 });
+                      }
+                    }
+                  }
+                }
               }} />
             </div>
           </div>
