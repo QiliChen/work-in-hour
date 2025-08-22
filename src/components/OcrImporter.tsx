@@ -147,7 +147,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         {/* 控件与示例并排布局 */}
         <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
           {/* 左列：控制选项 */}
-          <div style={{ flex: '1 1 360px', minWidth: 300 }}>
+          <div style={{ flex: '1 1 360px', minWidth: 280 }}>
             <div className="ocr-controls" style={{ 
               display: 'flex', 
               flexWrap: 'wrap',

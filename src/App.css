@@ -1199,6 +1199,25 @@ body {
 }
 
 /* OCR组件移动端适配 */
+@media (max-width: 768px) {
+  .ocr-button {
+    padding: 1rem 1.75rem !important;
+    font-size: 16px !important;
+    min-width: 160px !important;
+    min-height: 48px !important;
+  }
+  
+  .btn-secondary {
+    padding: 1rem 1.5rem !important;
+    font-size: 16px !important;
+    min-height: 48px !important;
+  }
+  
+  .ocr-controls {
+    gap: 1.25rem !important;
+  }
+}
+
 @media (min-width: 768px) {
   .ocr-controls {
     flex-direction: row !important;
