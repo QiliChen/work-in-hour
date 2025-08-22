@@ -197,6 +197,8 @@ function App() {
             const currentYear = currentMonth.getFullYear();
             const currentMon = currentMonth.getMonth();
             let imported = 0;
+            const smallWeekDates: string[] = [];
+            
             items.forEach(({ date, hours }) => {
               const d = new Date(date);
               if (d.getFullYear() === currentYear && d.getMonth() === currentMon) {
@@ -204,10 +206,47 @@ function App() {
                 if (overwrite || !existing || (existing && !existing.hours)) {
                   handleUpdateWorkDay(date, { hours });
                   imported += 1;
+                  
+                  // 自动判断小周：如果周六且8小时以上，设置为小周
+                  const dayOfWeek = d.getDay(); // 0=周日, 6=周六
+                  if (dayOfWeek === 6 && hours >= 8) {
+                    console.log(`✓ 自动设置小周: ${date} (周六${hours}小时)`);
+                    smallWeekDates.push(date);
+                    
+                    // 更新settings，添加该周为小周
+                    const weekStart = new Date(d);
+                    weekStart.setDate(d.getDate() - d.getDay()); // 设置为本周日
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6); // 设置为下周六
+                    
+                    setSettings(prevSettings => {
+                      const newWorkWeeks = [...(prevSettings.workWeeks || [])];
+                      const weekStartStr = weekStart.toISOString().split('T')[0];
+                      const weekEndStr = weekEnd.toISOString().split('T')[0];
+                      
+                      // 检查是否已存在该周配置
+                      const existingIndex = newWorkWeeks.findIndex((week: any) => 
+                        week.weekStart === weekStartStr && week.weekEnd === weekEndStr
+                      );
+                      
+                      if (existingIndex === -1) {
+                        newWorkWeeks.push({
+                          weekStart: weekStartStr,
+                          weekEnd: weekEndStr,
+                          isSmallWeek: true
+                        });
+                      }
+                      
+                      return {
+                        ...prevSettings,
+                        workWeeks: newWorkWeeks
+                      };
+                    });
+                  }
                 }
               }
             });
-            console.log(`OCR导入完成：${imported}/${items.length} 条写入（仅当前月）`);
+            console.log(`OCR导入完成：${imported}/${items.length} 条写入（仅当前月）${smallWeekDates.length > 0 ? `，自动设置 ${smallWeekDates.length} 个小周` : ''}`);
           }}
         />
 

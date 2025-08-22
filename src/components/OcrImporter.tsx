@@ -5,10 +5,11 @@ import Tesseract from 'tesseract.js';
 
 interface Props {
   onImport: (items: Array<{ date: string; hours: number }>, overwrite: boolean) => void;
+  onUpdateSettings?: (settings: any) => void;
 }
 
 // 简单OCR导入：支持形如 2025-08-01 或 2025/08/01，小时形如 11.3小时 / 11.3h
-const OcrImporter: React.FC<Props> = ({ onImport }) => {
+const OcrImporter: React.FC<Props> = ({ onImport, onUpdateSettings }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [busy, setBusy] = useState<boolean>(false);
@@ -16,43 +17,92 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const [overwrite, setOverwrite] = useState<boolean>(false);
 
   const parseText = (text: string) => {
+    console.log('=== OCR 原始文本 ===');
+    console.log(text);
+    console.log('=== 开始解析 ===');
+    
     const rawLines = text.split(/\r?\n/);
     const lines = rawLines.map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
     const items: Array<{ date: string; hours: number }> = [];
     // 2025-08-01 / 2025/08/01 / 2025年08月01日
-    const dateRegex = /(\d{4})[\-\/年](\d{2})[\-\/月](\d{2})/;
-    // 12.4小时 / 12.4 小时 / 12.4h / 12h（必须带单位，避免误匹配年份前两位“20”）
-    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)\s*(?:小时|小時|h|H)\b/i;
+    // 支持OCR识别出的"星期 五"（中间有空格）
+    const dateRegex = /(\d{4})[\-\/年](\d{2})[\-\/月](\d{2})\s*\(\s*星期\s*[一二三四五六日]\s*\)/;
+    // 12.4小时 / 12.4 小时 / 12.4h / 12h（必须带单位，避免误匹配年份前两位"20"）
+    // 支持OCR识别出的"小 时"（中间有空格），移除\b边界限制
+    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)\s*(?:小\s*时|小時|h|H)/i;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      console.log(`\n--- 处理第 ${i + 1} 行: "${line}" ---`);
+      
       const d = line.match(dateRegex);
-      if (!d) continue;
+      if (!d) {
+        console.log('✗ 未找到日期');
+        continue;
+      }
 
       const y = d[1];
       const m = d[2];
       const dd = d[3];
       const date = `${y}-${m}-${dd}`;
+      console.log(`✓ 找到日期: ${date}`);
 
       // 先在同一行找小时，否则在接下来的两行内寻找最近的小时数
       let h = line.match(hoursRegex);
       if (!h) {
+        console.log('  同一行未找到小时，搜索后续行...');
         for (let j = 1; j <= 2 && i + j < lines.length; j++) {
-          const h2 = lines[i + j].match(hoursRegex);
-          if (h2) { h = h2; break; }
+          const searchLine = lines[i + j];
+          console.log(`  搜索第 ${i + j + 1} 行: "${searchLine}"`);
+          const h2 = searchLine.match(hoursRegex);
+          if (h2) { 
+            h = h2; 
+            console.log(`✓ 找到小时: ${h2[0]} (数值: ${h2[1]})`);
+            break; 
+          } else {
+            console.log('✗ 未找到小时');
+          }
         }
+      } else {
+        console.log(`✓ 同一行找到小时: ${h[0]} (数值: ${h[1]})`);
       }
+      
+      // 调试：打印当前行的完整匹配测试
+      console.log(`  调试 - 当前行完整文本: "${line}"`);
+      console.log(`  调试 - 小时正则: ${hoursRegex}`);
+      const allMatches = line.match(hoursRegex);
+      console.log(`  调试 - 当前行所有小时匹配:`, allMatches);
 
       if (h && h[1]) {
         let hours = parseFloat(h[1].replace(',', '.'));
+        console.log(`✓ 小时解析: ${h[1]} -> ${hours}`);
+        
         // 合理区间约束，避免异常值
-        if (hours > 14) hours = 14;
-        if (hours < 0) hours = 0;
-        if (!Number.isNaN(hours)) {
-          items.push({ date, hours });
+        if (hours > 14) {
+          console.log(`⚠ 小时超出上限，限制为 14`);
+          hours = 14;
         }
+        if (hours < 0) {
+          console.log(`⚠ 小时为负数，限制为 0`);
+          hours = 0;
+        }
+        
+        if (!Number.isNaN(hours)) {
+          console.log(`✓ 最终小时: ${hours}`);
+          items.push({ date, hours });
+        } else {
+          console.log(`✗ 小时解析失败`);
+        }
+      } else {
+        console.log(`✗ 未找到小时信息`);
       }
     }
+    
+    console.log('\n=== 解析结果 ===');
+    console.log(`成功解析: ${items.length} 条记录`);
+    console.log('解析的项目:', items);
+    console.log('=== 解析完成 ===\n');
+    
     return items;
   };
 
@@ -72,8 +122,20 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         },
       });
       const items = parseText(data.text);
+      
+      // 自动判断小周：如果周六且8小时以上，设置为小周
+      const smallWeekDates: string[] = [];
+      items.forEach(({ date, hours }) => {
+        const dateObj = new Date(date);
+        const dayOfWeek = dateObj.getDay(); // 0=周日, 6=周六
+        if (dayOfWeek === 6 && hours >= 8) {
+          console.log(`✓ 自动设置小周: ${date} (周六${hours}小时)`);
+          smallWeekDates.push(date);
+        }
+      });
+      
       onImport(items, overwrite);
-      setProgress(`完成，解析到 ${items.length} 条记录`);
+      setProgress(`完成，解析到 ${items.length} 条记录${smallWeekDates.length > 0 ? `，自动设置 ${smallWeekDates.length} 个小周` : ''}`);
     } catch (err) {
       setProgress('识别失败');
       console.error(err);
@@ -84,25 +146,79 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   };
 
   return (
-    <div className="card" style={{ padding: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between' }}>
+    <div className="card" style={{ padding: '1.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* 标题和描述 */}
         <div>
-          <div style={{ fontWeight: 800 }}>OCR 导入（本地识别）</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>上传手机工时截图，自动解析“日期 + 小时”。</div>
+          <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.5rem' }}>OCR 导入（本地识别）</div>
+          <div style={{ fontSize: 14, color: '#64748b', lineHeight: '1.4' }}>
+            上传手机工时截图，自动解析"日期 + 小时"。如果周六识别到8小时以上，会自动设置为小周。
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475569' }}>
-            <input type="checkbox" checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} />
+        
+        {/* 控制选项 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#475569', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              checked={overwrite} 
+              onChange={(e) => setOverwrite(e.target.checked)}
+              style={{ width: 16, height: 16 }}
+            />
             覆盖已有工时
           </label>
-          <select value={lang} onChange={(e) => setLang(e.target.value as any)} className="hour-input" style={{ width: 160, margin: 0 }}>
-            <option value="chi_sim+eng">中文（简体）+ 英文</option>
-            <option value="eng">英文</option>
-          </select>
-          <button className="btn-primary" onClick={handlePick} disabled={busy}>选择图片</button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
+            <select 
+              value={lang} 
+              onChange={(e) => setLang(e.target.value as any)} 
+              className="hour-input" 
+              style={{ 
+                width: 180, 
+                margin: 0, 
+                padding: '0.5rem',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: 14
+              }}
+            >
+              <option value="chi_sim+eng">中文（简体）+ 英文</option>
+              <option value="eng">英文</option>
+            </select>
+          </div>
+          
+          <button 
+            className="btn-primary" 
+            onClick={handlePick} 
+            disabled={busy}
+            style={{ 
+              padding: '0.75rem 1.5rem',
+              fontSize: 14,
+              fontWeight: 600,
+              minWidth: 120
+            }}
+          >
+            {busy ? '识别中...' : '选择图片'}
+          </button>
         </div>
+        
+        {/* 进度信息 */}
+        {progress && (
+          <div style={{ 
+            marginTop: 8, 
+            fontSize: 14, 
+            color: '#475569',
+            padding: '0.75rem',
+            backgroundColor: '#f8fafc',
+            borderRadius: '6px',
+            border: '1px solid #e2e8f0'
+          }}>
+            {progress}
+          </div>
+        )}
       </div>
-      {progress && <div style={{ marginTop: 8, fontSize: 12, color: '#475569' }}>{progress}</div>}
+      
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
     </div>
   );
