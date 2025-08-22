@@ -12,7 +12,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [busy, setBusy] = useState<boolean>(false);
-  const [lang, setLang] = useState<'chi_sim+eng' | 'eng'>('chi_sim+eng');
+  const [lang] = useState<'chi_sim+eng' | 'eng'>('chi_sim+eng');
   const [overwrite, setOverwrite] = useState<boolean>(false);
   const [showSample, setShowSample] = useState<boolean>(false);
   const sampleSrc = `${(import.meta as any).env?.BASE_URL ?? '/'}ocr-sample.jpg`;
@@ -172,59 +172,42 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
                 覆盖已有工时
               </label>
               
-              <div className="ocr-language-group" style={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                gap: 8
-              }}>
-                <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
-                <select 
-                  value={lang} 
-                  onChange={(e) => setLang(e.target.value as any)} 
-                  className="hour-input" 
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  className="btn-primary ocr-button" 
+                  onClick={handlePick} 
+                  disabled={busy}
                   style={{ 
-                    width: 200,
-                    padding: '0.6rem 0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
+                    padding: '0.75rem 1.5rem',
                     fontSize: 14,
-                    minHeight: 44 // 移动端触摸友好
+                    fontWeight: 600,
+                    minWidth: 140,
+                    minHeight: 44,
+                    borderRadius: '10px',
+                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)'
                   }}
                 >
-                  <option value="chi_sim+eng">中文（简体）+ 英文</option>
-                  <option value="eng">英文</option>
-                </select>
-              </div>
-              
-              <button 
-                className="btn-primary ocr-button" 
-                onClick={handlePick} 
-                disabled={busy}
-                style={{ 
-                  padding: '0.75rem 1.25rem',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  minWidth: 120,
-                  minHeight: 44 // 移动端触摸友好
-                }}
-              >
-                {busy ? '识别中...' : '选择图片'}
-              </button>
+                  {busy ? '识别中...' : '选择图片'}
+                </button>
 
-              <button 
-                className="btn-secondary"
-                onClick={() => setShowSample(v => !v)}
-                style={{
-                  padding: '0.6rem 0.9rem',
-                  fontSize: 14,
-                  border: '1px solid #cbd5e1',
-                  borderRadius: 8,
-                  background: '#fff',
-                  color: '#0f172a'
-                }}
-              >
-                {showSample ? '收起示例' : '查看示例截图'}
-              </button>
+                <button 
+                  className="btn-secondary"
+                  onClick={() => setShowSample(v => !v)}
+                  style={{
+                    padding: '0.75rem 1.25rem',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
+                    background: '#fff',
+                    color: '#374151',
+                    minHeight: 44,
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {showSample ? '收起示例' : '查看示例'}
+                </button>
+              </div>
             </div>
 
             {/* 进度信息 */}
