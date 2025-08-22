@@ -15,6 +15,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const [lang, setLang] = useState<'chi_sim+eng' | 'eng'>('chi_sim+eng');
   const [overwrite, setOverwrite] = useState<boolean>(false);
   const [showSample, setShowSample] = useState<boolean>(false);
+  const sampleSrc = `${(import.meta as any).env?.BASE_URL ?? '/'}ocr-sample.jpg`;
 
   const parseText = (text: string) => {
     console.log('=== OCR 原始文本 ===');
@@ -256,7 +257,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
                 </div>
                 <div style={{ width: '100%', overflow: 'hidden', borderRadius: 8 }}>
                   <img 
-                    src="/ocr-sample.jpg" 
+                    src={sampleSrc} 
                     alt="OCR 示例截图（将图片放在 public/ocr-sample.jpg）"
                     style={{ width: '100%', height: 'auto', display: 'block' }}
                     onError={(e) => {
