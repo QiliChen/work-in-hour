@@ -147,9 +147,18 @@ export class WorkTimeCalculator {
     const remainingHours = totalRequired - totalHours;
     const complianceRate = totalRequired > 0 ? (totalHours / totalRequired) * 100 : 0;
 
+    // 当天日期（用于排除“今天”）
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = format(today, 'yyyy-MM-dd');
+
     // 统计各种类型的天数
     const smallWeekDays = workDays.filter(day => day.isSmallWeek).length;
-    const normalWeekDays = workDays.filter(day => !day.isSmallWeek && day.requiredHours > 0).length;
+    // 工作日天数：本月中（由上游已筛），排除今天，排除小周，包含调休工作日
+    // 判定依据：requiredHours > 0 且 !isSmallWeek 且 非今天
+    const normalWeekDays = workDays.filter(day => {
+      return day.requiredHours > 0 && !day.isSmallWeek && day.date !== todayStr;
+    }).length;
     
     // 区分工作日请假和小周请假
     const normalWeekLeaveDays = workDays.filter(day => !day.isSmallWeek && day.isLeave).length;
@@ -157,10 +166,6 @@ export class WorkTimeCalculator {
     const leaveDays = normalWeekLeaveDays + smallWeekLeaveDays;
 
     // 计算未来的小周天数（从今天往后，不含今天）
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const todayStr = format(today, 'yyyy-MM-dd');
     const futureSmallWeekDays = workDays.filter(day => {
       if (day.date === todayStr) return false; // 严格排除今天
       const dayDate = new Date(day.date);

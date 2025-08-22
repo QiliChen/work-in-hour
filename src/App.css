@@ -374,6 +374,21 @@ body {
   box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
+/* Toast banner */
+.toast-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(34, 197, 94, 0.95);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35);
+  font-weight: 700;
+  z-index: 2000;
+}
+
 .calendar-nav {
   display: flex;
   gap: 1rem;

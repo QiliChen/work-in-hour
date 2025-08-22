@@ -56,7 +56,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
           <div className="breakdown-item">
             <div className="breakdown-icon">📅</div>
             <div className="breakdown-content">
-              <div className="breakdown-label">大周天数</div>
+              <div className="breakdown-label">工作日天数</div>
               <div className="breakdown-value">{stats.normalWeekDays} 天</div>
               <div className="breakdown-note">11小时/天</div>
             </div>

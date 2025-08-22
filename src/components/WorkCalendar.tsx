@@ -240,8 +240,15 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
 
   const handleClearData = () => {
     if (window.confirm('确定要清除所有数据吗？此操作不可撤销！')) {
-      localStorage.removeItem('workHourSettings');
-      localStorage.removeItem('workHourData');
+      // 使用实际持久化的键名
+      localStorage.removeItem('workSettings');
+      localStorage.removeItem('workDays');
+      // 可选：清理节假日缓存（若存在）
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith('holiday_cyi_cache') || k.startsWith('holiday_cache')) {
+          localStorage.removeItem(k);
+        }
+      });
       window.location.reload();
     }
   };
@@ -270,6 +277,15 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
           {format(currentMonth, 'yyyy年MM月', { locale: zhCN })}
         </h2>
         <div className="header-right">
+          <button 
+            onClick={() => {
+              const el = document.getElementById('ocr-modal-trigger');
+              if (el) el.click();
+            }}
+            className="quick-action-btn"
+          >
+            📷 OCR 导入
+          </button>
           <button 
             onClick={handleClearData}
             className="quick-action-btn clear-btn"
