@@ -14,6 +14,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const [busy, setBusy] = useState<boolean>(false);
   const [lang, setLang] = useState<'chi_sim+eng' | 'eng'>('chi_sim+eng');
   const [overwrite, setOverwrite] = useState<boolean>(false);
+  const [showSample, setShowSample] = useState<boolean>(false);
 
   const parseText = (text: string) => {
     console.log('=== OCR 原始文本 ===');
@@ -220,6 +221,52 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
             border: '1px solid #e2e8f0'
           }}>
             {progress}
+          </div>
+        )}
+
+        {/* 示例图片开关 */}
+        <div style={{ marginTop: 12 }}>
+          <button 
+            className="btn-secondary"
+            onClick={() => setShowSample(v => !v)}
+            style={{
+              padding: '0.6rem 0.9rem',
+              fontSize: 14,
+              border: '1px solid #cbd5e1',
+              borderRadius: 8,
+              background: '#fff',
+              color: '#0f172a'
+            }}
+          >
+            {showSample ? '收起示例' : '查看示例截图'}
+          </button>
+        </div>
+
+        {/* 示例图片内容 */}
+        {showSample && (
+          <div style={{
+            marginTop: 12,
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            padding: 12
+          }}>
+            <div style={{ fontSize: 14, color: '#334155', marginBottom: 8 }}>
+              示例：手机「个人月统计-休息天数」页面截图。建议裁掉无关内容以提升识别速度。
+            </div>
+            <div style={{ width: '100%', overflow: 'hidden', borderRadius: 8 }}>
+              <img 
+                src="/ocr-sample.jpg" 
+                alt="OCR 示例截图（将图片放在 public/ocr-sample.jpg）"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
+              若未显示图片，请将示例图保存为项目根目录 <code>public/ocr-sample.jpg</code>。
+            </div>
           </div>
         )}
       </div>

@@ -220,38 +220,89 @@ function App() {
                       recognizedSet.add(date);
                     }
                     const dayOfWeek = d.getDay();
-                    if (dayOfWeek === 6 && hours >= 8) {
+                    if (dayOfWeek === 6 && hours > 0) {
                       smallWeekDates.push(date);
-                      const weekStart = new Date(d);
-                      weekStart.setDate(d.getDate() - d.getDay());
-                      const weekEnd = new Date(weekStart);
-                      weekEnd.setDate(weekStart.getDate() + 6);
-                      setSettings(prevSettings => {
-                        const newWorkWeeks = [...(prevSettings.workWeeks || [])];
-                        const weekStartStr = weekStart.toISOString().split('T')[0];
-                        const weekEndStr = weekEnd.toISOString().split('T')[0];
-                        const existingIndex = newWorkWeeks.findIndex((week: any) => 
-                          week.weekStart === weekStartStr && week.weekEnd === weekEndStr
-                        );
-                        if (existingIndex === -1) {
-                          newWorkWeeks.push({ weekStart: weekStartStr, weekEnd: weekEndStr, isSmallWeek: true });
-                          const newSettings = { ...prevSettings, workWeeks: newWorkWeeks };
-                          setWorkDays(prevWorkDays => prevWorkDays.map(day => {
-                            const dayDate = new Date(day.date);
-                            if (dayDate >= weekStart && dayDate <= weekEnd) {
-                              const newRequiredHours = calculator.getRequiredHoursWithSettings(dayDate, newSettings);
-                              const isSmallWeek = calculator.isSmallWeekDayWithSettings(dayDate, newSettings);
-                              return { ...day, requiredHours: newRequiredHours, isSmallWeek };
-                            }
-                            return day;
-                          }));
-                          return newSettings;
-                        }
-                        return { ...prevSettings, workWeeks: newWorkWeeks };
-                      });
                     }
                   }
                 });
+
+                // 预测小周：以当月第一周六为基准，存在两条 14 天节律序列：base0=第一周六，base1=第一周六+7。
+                // 选择与已识别小周重合度更高的序列；如果只给了16号，应推算 2/16/30，而不是 9/23。
+                if (smallWeekDates.length > 0) {
+                  const recogDays = Array.from(new Set(smallWeekDates.map(dt => new Date(dt).getDate())));
+                  const lastDay = new Date(currentYear, currentMon + 1, 0).getDate();
+                  const ranges: Array<{ start: Date; end: Date; startStr: string; endStr: string }> = [];
+                  
+                  // 统一使用单锚定策略：以第一个识别到的小周日期为锚点，按14天间隔向前后递推
+                  const anchor = recogDays[0];
+                  const candidates: number[] = [];
+                  
+                  // 向后递推
+                  for (let d = anchor; d <= lastDay; d += 14) {
+                    candidates.push(d);
+                  }
+                  
+                  // 向前递推
+                  for (let d = anchor - 14; d >= 1; d -= 14) {
+                    candidates.push(d);
+                  }
+                  
+                  candidates.sort((a, b) => a - b);
+                  
+                  // 为每个候选日期创建周配置（只保留确实是周六的日期）
+                  for (const d of candidates) {
+                    const dt = new Date(currentYear, currentMon, d);
+                    if (dt.getDay() !== 6) {
+                      continue; // 确保是周六
+                    }
+                    
+                    // 正确计算该周六所在周的周期（周一到周日）
+                    const weekStart = new Date(dt);
+                    const daysFromMonday = (dt.getDay() + 6) % 7; // 计算从周一开始的天数（周六是5天）
+                    weekStart.setDate(dt.getDate() - daysFromMonday);
+                    
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6);
+                    
+                    ranges.push({ 
+                      start: weekStart, 
+                      end: weekEnd, 
+                      startStr: weekStart.toISOString().split('T')[0], 
+                      endStr: weekEnd.toISOString().split('T')[0] 
+                    });
+                  }
+
+                  // 同步更新配置和工作日数据
+                  setSettings(prevSettings => {
+                    // 清除当前月的所有小周配置
+                    let newWorkWeeks = (prevSettings.workWeeks || []).filter(w => {
+                      const ws = new Date(w.weekStart);
+                      return !(ws.getFullYear() === currentYear && ws.getMonth() === currentMon);
+                    });
+                    
+                    // 添加新的小周配置
+                    for (const r of ranges) {
+                      newWorkWeeks.push({ weekStart: r.startStr, weekEnd: r.endStr, isSmallWeek: true });
+                    }
+                    
+                    const newSettings = { ...prevSettings, workWeeks: newWorkWeeks };
+                    
+                    // 立即更新 workDays 数据
+                    setWorkDays(prevWorkDays => {
+                      return prevWorkDays.map(day => {
+                        const dayDate = new Date(day.date);
+                        if (dayDate.getFullYear() === currentYear && dayDate.getMonth() === currentMon) {
+                          const newRequiredHours = calculator.getRequiredHoursWithSettings(dayDate, newSettings);
+                          const isSmallWeek = calculator.isSmallWeekDayWithSettings(dayDate, newSettings);
+                          return { ...day, requiredHours: newRequiredHours, isSmallWeek };
+                        }
+                        return day;
+                      });
+                    });
+                    
+                    return newSettings;
+                  });
+                }
                 setShowOcr(false);
                 // 成功提示（面包条）
                 showToast(`OCR 导入成功：${imported}/${items.length} 条`);
