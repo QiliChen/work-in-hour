@@ -179,6 +179,53 @@ export class WorkTimeCalculator {
     );
   }
 
+  // 使用新settings重新计算requiredHours
+  getRequiredHoursWithSettings(date: Date, newSettings: WorkSettings): number {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    // 如果是公假日，不要求工时
+    if (isHolidaySync(dateStr)) {
+      return 0;
+    }
+    
+    // 如果是调休工作日，按正常工作日要求
+    if (isWorkdayAdjustmentSync(dateStr)) {
+      return newSettings.normalHours;
+    }
+    
+    if (this.isWorkDay(date)) {
+      return newSettings.normalHours; // 工作日11小时
+    }
+    
+    // 检查是否为小周周六
+    const isSmallWeekDay = this.isSmallWeekDayWithSettings(date, newSettings);
+    if (isSmallWeekDay) {
+      return newSettings.smallWeekHours; // 小周周六8小时
+    }
+    
+    // 周日可以设置工时，但默认不要求
+    if (this.isSunday(date)) {
+      return 0; // 周日默认不要求工时
+    }
+    
+    return 0; // 其他日期不要求工时
+  }
+
+  // 使用新settings检查是否为小周
+  isSmallWeekDayWithSettings(date: Date, newSettings: WorkSettings): boolean {
+    if (!this.isSaturday(date)) {
+      return false;
+    }
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return newSettings.workWeeks.some(week => {
+      const weekStart = parseISO(week.weekStart);
+      const weekEnd = parseISO(week.weekEnd);
+      const currentDate = parseISO(dateStr);
+      return currentDate >= weekStart && currentDate <= weekEnd && week.isSmallWeek;
+    });
+  }
+
   // 获取日期范围的数据
   getDateRangeData(startDate: string, endDate: string): WorkDay[] {
     const start = parseISO(startDate);

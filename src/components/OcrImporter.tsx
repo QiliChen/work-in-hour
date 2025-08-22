@@ -144,30 +144,48 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         </div>
         
         {/* 控制选项 */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#475569', cursor: 'pointer' }}>
+        <div className="ocr-controls" style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '1rem'
+        }}>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 8, 
+            fontSize: 14, 
+            color: '#475569', 
+            cursor: 'pointer',
+            minHeight: 44 // 移动端触摸友好
+          }}>
             <input 
               type="checkbox" 
               checked={overwrite} 
               onChange={(e) => setOverwrite(e.target.checked)}
-              style={{ width: 16, height: 16 }}
+              style={{ width: 18, height: 18 }}
             />
             覆盖已有工时
           </label>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="ocr-language-group" style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 8
+          }}>
             <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
             <select 
               value={lang} 
               onChange={(e) => setLang(e.target.value as any)} 
               className="hour-input" 
               style={{ 
-                width: 180, 
+                width: '100%',
+                maxWidth: 200,
                 margin: 0, 
-                padding: '0.5rem',
-                borderRadius: '6px',
+                padding: '0.75rem',
+                borderRadius: '8px',
                 border: '1px solid #d1d5db',
-                fontSize: 14
+                fontSize: 14,
+                minHeight: 44 // 移动端触摸友好
               }}
             >
               <option value="chi_sim+eng">中文（简体）+ 英文</option>
@@ -176,14 +194,16 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
           </div>
           
           <button 
-            className="btn-primary" 
+            className="btn-primary ocr-button" 
             onClick={handlePick} 
             disabled={busy}
             style={{ 
               padding: '0.75rem 1.5rem',
               fontSize: 14,
               fontWeight: 600,
-              minWidth: 120
+              minWidth: 120,
+              minHeight: 44, // 移动端触摸友好
+              width: '100%'
             }}
           >
             {busy ? '识别中...' : '选择图片'}
@@ -198,7 +218,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
             color: '#475569',
             padding: '0.75rem',
             backgroundColor: '#f8fafc',
-            borderRadius: '6px',
+            borderRadius: '8px',
             border: '1px solid #e2e8f0'
           }}>
             {progress}

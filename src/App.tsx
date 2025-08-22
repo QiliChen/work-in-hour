@@ -235,6 +235,34 @@ function App() {
                           weekEnd: weekEndStr,
                           isSmallWeek: true
                         });
+                        
+                        // 重新计算该周所有日期的requiredHours
+                        const newSettings = {
+                          ...prevSettings,
+                          workWeeks: newWorkWeeks
+                        };
+                        
+                        // 更新该周所有日期的requiredHours和isSmallWeek状态
+                        setWorkDays(prevWorkDays => {
+                          return prevWorkDays.map(day => {
+                            const dayDate = new Date(day.date);
+                            if (dayDate >= weekStart && dayDate <= weekEnd) {
+                              // 重新计算requiredHours
+                              const newRequiredHours = calculator.getRequiredHoursWithSettings(dayDate, newSettings);
+                              // 检查是否为小周（周六且在该周范围内）
+                              const isSmallWeek = calculator.isSmallWeekDayWithSettings(dayDate, newSettings);
+                              console.log(`重新计算 ${day.date} 的requiredHours: ${day.requiredHours} -> ${newRequiredHours}, isSmallWeek: ${day.isSmallWeek} -> ${isSmallWeek}`);
+                              return { 
+                                ...day, 
+                                requiredHours: newRequiredHours,
+                                isSmallWeek: isSmallWeek
+                              };
+                            }
+                            return day;
+                          });
+                        });
+                        
+                        return newSettings;
                       }
                       
                       return {
