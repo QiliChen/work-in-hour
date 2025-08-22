@@ -264,9 +264,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
                     }}
                   />
                 </div>
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
-                  若未显示图片，请将示例图保存为项目根目录 <code>public/ocr-sample.jpg</code>。
-                </div>
+                
               </div>
             </div>
           )}
