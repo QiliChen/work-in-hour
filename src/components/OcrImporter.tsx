@@ -143,132 +143,134 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
             上传手机工时截图，自动解析"日期 + 小时"。如果周六识别到8小时以上，会自动设置为小周。
           </div>
         </div>
-        
-        {/* 控制选项 */}
-        <div className="ocr-controls" style={{ 
-          display: 'flex', 
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '1rem'
-        }}>
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 8, 
-            fontSize: 14, 
-            color: '#475569', 
-            cursor: 'pointer',
-            minHeight: 44 // 移动端触摸友好
-          }}>
-            <input 
-              type="checkbox" 
-              checked={overwrite} 
-              onChange={(e) => setOverwrite(e.target.checked)}
-              style={{ width: 18, height: 18 }}
-            />
-            覆盖已有工时
-          </label>
-          
-          <div className="ocr-language-group" style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            gap: 8
-          }}>
-            <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
-            <select 
-              value={lang} 
-              onChange={(e) => setLang(e.target.value as any)} 
-              className="hour-input" 
-              style={{ 
-                width: 200,
-                padding: '0.6rem 0.75rem',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: 14,
+        {/* 控件与示例并排布局 */}
+        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* 左列：控制选项 */}
+          <div style={{ flex: '1 1 360px', minWidth: 300 }}>
+            <div className="ocr-controls" style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 8, 
+                fontSize: 14, 
+                color: '#475569', 
+                cursor: 'pointer',
                 minHeight: 44 // 移动端触摸友好
-              }}
-            >
-              <option value="chi_sim+eng">中文（简体）+ 英文</option>
-              <option value="eng">英文</option>
-            </select>
-          </div>
-          
-          <button 
-            className="btn-primary ocr-button" 
-            onClick={handlePick} 
-            disabled={busy}
-            style={{ 
-              padding: '0.75rem 1.25rem',
-              fontSize: 14,
-              fontWeight: 600,
-              minWidth: 120,
-              minHeight: 44 // 移动端触摸友好
-            }}
-          >
-            {busy ? '识别中...' : '选择图片'}
-          </button>
-        </div>
-        
-        {/* 进度信息 */}
-        {progress && (
-          <div style={{ 
-            marginTop: 8, 
-            fontSize: 14, 
-            color: '#475569',
-            padding: '0.75rem',
-            backgroundColor: '#f8fafc',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0'
-          }}>
-            {progress}
-          </div>
-        )}
-
-        {/* 示例图片开关 */}
-        <div style={{ marginTop: 12 }}>
-          <button 
-            className="btn-secondary"
-            onClick={() => setShowSample(v => !v)}
-            style={{
-              padding: '0.6rem 0.9rem',
-              fontSize: 14,
-              border: '1px solid #cbd5e1',
-              borderRadius: 8,
-              background: '#fff',
-              color: '#0f172a'
-            }}
-          >
-            {showSample ? '收起示例' : '查看示例截图'}
-          </button>
-        </div>
-
-        {/* 示例图片内容 */}
-        {showSample && (
-          <div style={{
-            marginTop: 12,
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: 8,
-            padding: 12
-          }}>
-            <div style={{ fontSize: 14, color: '#334155', marginBottom: 8 }}>
-              示例：手机「个人月统计-休息天数」页面截图。建议裁掉无关内容以提升识别速度。
-            </div>
-            <div style={{ width: '100%', overflow: 'hidden', borderRadius: 8 }}>
-              <img 
-                src="/ocr-sample.jpg" 
-                alt="OCR 示例截图（将图片放在 public/ocr-sample.jpg）"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={overwrite} 
+                  onChange={(e) => setOverwrite(e.target.checked)}
+                  style={{ width: 18, height: 18 }}
+                />
+                覆盖已有工时
+              </label>
+              
+              <div className="ocr-language-group" style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 8
+              }}>
+                <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
+                <select 
+                  value={lang} 
+                  onChange={(e) => setLang(e.target.value as any)} 
+                  className="hour-input" 
+                  style={{ 
+                    width: 200,
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: 14,
+                    minHeight: 44 // 移动端触摸友好
+                  }}
+                >
+                  <option value="chi_sim+eng">中文（简体）+ 英文</option>
+                  <option value="eng">英文</option>
+                </select>
+              </div>
+              
+              <button 
+                className="btn-primary ocr-button" 
+                onClick={handlePick} 
+                disabled={busy}
+                style={{ 
+                  padding: '0.75rem 1.25rem',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  minWidth: 120,
+                  minHeight: 44 // 移动端触摸友好
                 }}
-              />
+              >
+                {busy ? '识别中...' : '选择图片'}
+              </button>
+
+              <button 
+                className="btn-secondary"
+                onClick={() => setShowSample(v => !v)}
+                style={{
+                  padding: '0.6rem 0.9rem',
+                  fontSize: 14,
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 8,
+                  background: '#fff',
+                  color: '#0f172a'
+                }}
+              >
+                {showSample ? '收起示例' : '查看示例截图'}
+              </button>
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
-              若未显示图片，请将示例图保存为项目根目录 <code>public/ocr-sample.jpg</code>。
-            </div>
+
+            {/* 进度信息 */}
+            {progress && (
+              <div style={{ 
+                marginTop: 8, 
+                fontSize: 14, 
+                color: '#475569',
+                padding: '0.75rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                {progress}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* 右列：示例图片 */}
+          {showSample && (
+            <div style={{ flex: '0 1 320px', maxWidth: 360, minWidth: 260 }}>
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: 12
+              }}>
+                <div style={{ fontSize: 14, color: '#334155', marginBottom: 8 }}>
+                  示例：手机「个人月统计-休息天数」页面截图。建议裁掉无关内容以提升识别速度。
+                </div>
+                <div style={{ width: '100%', overflow: 'hidden', borderRadius: 8 }}>
+                  <img 
+                    src="/ocr-sample.jpg" 
+                    alt="OCR 示例截图（将图片放在 public/ocr-sample.jpg）"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
+                  若未显示图片，请将示例图保存为项目根目录 <code>public/ocr-sample.jpg</code>。
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
