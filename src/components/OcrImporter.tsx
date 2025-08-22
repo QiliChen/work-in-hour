@@ -5,11 +5,10 @@ import Tesseract from 'tesseract.js';
 
 interface Props {
   onImport: (items: Array<{ date: string; hours: number }>, overwrite: boolean) => void;
-  onUpdateSettings?: (settings: any) => void;
 }
 
 // 简单OCR导入：支持形如 2025-08-01 或 2025/08/01，小时形如 11.3小时 / 11.3h
-const OcrImporter: React.FC<Props> = ({ onImport, onUpdateSettings }) => {
+const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [busy, setBusy] = useState<boolean>(false);
@@ -122,20 +121,8 @@ const OcrImporter: React.FC<Props> = ({ onImport, onUpdateSettings }) => {
         },
       });
       const items = parseText(data.text);
-      
-      // 自动判断小周：如果周六且8小时以上，设置为小周
-      const smallWeekDates: string[] = [];
-      items.forEach(({ date, hours }) => {
-        const dateObj = new Date(date);
-        const dayOfWeek = dateObj.getDay(); // 0=周日, 6=周六
-        if (dayOfWeek === 6 && hours >= 8) {
-          console.log(`✓ 自动设置小周: ${date} (周六${hours}小时)`);
-          smallWeekDates.push(date);
-        }
-      });
-      
       onImport(items, overwrite);
-      setProgress(`完成，解析到 ${items.length} 条记录${smallWeekDates.length > 0 ? `，自动设置 ${smallWeekDates.length} 个小周` : ''}`);
+      setProgress(`完成，解析到 ${items.length} 条记录`);
     } catch (err) {
       setProgress('识别失败');
       console.error(err);
