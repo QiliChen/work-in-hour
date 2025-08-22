@@ -907,84 +907,49 @@ body {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .app-container {
-    padding: 1rem 0.5rem;
-  }
-  
-  .container {
-    padding: 0 0.5rem;
-  }
-  
-  .app-title {
-    font-size: 2.5rem;
-  }
-  
-  .app-subtitle {
-    font-size: 1rem;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .calendar-card,
-  .stats-card,
-  .quick-actions {
-    padding: 1.5rem;
-  }
-  
   .calendar-grid {
-    gap: 0.75rem;
-  }
-  
-  .calendar-day {
-    min-height: 80px;
-    padding: 0.5rem;
-  }
-  
-  .nav-button {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .modal-content {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-  
-  .modal-actions {
+    display: flex;
     flex-direction: column;
-  }
-  
-  .stats-breakdown {
-    grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
-  .breakdown-item {
+
+  .calendar-day {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 60px;
     padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
   }
-  
-  .breakdown-icon {
-    font-size: 1.5rem;
-    width: 2.5rem;
-    height: 2.5rem;
+
+  .day-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+    margin-right: 1rem;
   }
-  
-  .breakdown-value {
-    font-size: 1.25rem;
+
+  .day-info {
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.4;
   }
-  
-  .future-outlook {
-    padding: 1rem;
+
+  .small-week-badge,
+  .leave-badge {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
   }
-  
-  .outlook-card {
-    padding: 0.75rem;
+
+  .weekday-header {
+    display: none; /* 隐藏星期标题，因为列表视图不需要 */
+  }
+
+  .calendar-card {
+    padding: 1rem 0.5rem;
   }
 }
 
