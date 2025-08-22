@@ -170,6 +170,13 @@ export class WorkTimeCalculator {
       return dayDate >= today && day.requiredHours > 0 && !day.isLeave;
     }).length;
 
+    // 获取今天的工时信息
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const todayWorkDay = workDays.find(day => day.date === todayStr);
+    const todayRequiredHours = todayWorkDay?.requiredHours || 0;
+    const todayActualHours = todayWorkDay?.hours || 0;
+    const todayIsSmallWeek = todayWorkDay?.isSmallWeek || false;
+
 
 
     return {
@@ -186,7 +193,10 @@ export class WorkTimeCalculator {
       normalWeekLeaveDays, // 工作日请假天数
       smallWeekLeaveDays,  // 小周请假天数
       futureSmallWeekDays, // 未来的小周天数
-      futureWorkDays       // 从今天开始的剩余工作日数
+      futureWorkDays,      // 从今天开始的剩余工作日数
+      todayRequiredHours,  // 今天的工时要求
+      todayActualHours,    // 今天的实际工时
+      todayIsSmallWeek     // 今天是否为小周
     };
   }
 

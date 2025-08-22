@@ -126,9 +126,20 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
                 <span className={`outlook-value ${
                   ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours >= 0 ? 'positive' : 'negative'
                 }`}>
-                  {formatHours(
-                    ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours
-                  )}h
+                  {(() => {
+                    const baseDiff = ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours;
+                    const todayEstimatedHours = stats.todayRequiredHours - stats.todayActualHours;
+                    const totalDiff = baseDiff + todayEstimatedHours;
+                    
+                    let displayText = formatHours(totalDiff) + 'h';
+                    // 只有当今天有工时要求但还没填写时，才显示预估信息
+                    if (stats.todayRequiredHours > 0 && stats.todayActualHours === 0) {
+                      const todayHours = stats.todayIsSmallWeek ? 8 : 11;
+                      displayText += `(今天预估+${todayHours}h)`;
+                    }
+                    
+                    return displayText;
+                  })()}
                 </span>
               </div>
             </div>

@@ -146,7 +146,8 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         {/* 控制选项 */}
         <div className="ocr-controls" style={{ 
           display: 'flex', 
-          flexDirection: 'column', 
+          flexWrap: 'wrap',
+          alignItems: 'center',
           gap: '1rem'
         }}>
           <label style={{ 
@@ -169,7 +170,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
           
           <div className="ocr-language-group" style={{ 
             display: 'flex', 
-            flexDirection: 'column',
+            alignItems: 'center',
             gap: 8
           }}>
             <span style={{ fontSize: 14, color: '#475569' }}>识别语言：</span>
@@ -178,10 +179,8 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
               onChange={(e) => setLang(e.target.value as any)} 
               className="hour-input" 
               style={{ 
-                width: '100%',
-                maxWidth: 200,
-                margin: 0, 
-                padding: '0.75rem',
+                width: 200,
+                padding: '0.6rem 0.75rem',
                 borderRadius: '8px',
                 border: '1px solid #d1d5db',
                 fontSize: 14,
@@ -198,12 +197,11 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
             onClick={handlePick} 
             disabled={busy}
             style={{ 
-              padding: '0.75rem 1.5rem',
+              padding: '0.75rem 1.25rem',
               fontSize: 14,
               fontWeight: 600,
               minWidth: 120,
-              minHeight: 44, // 移动端触摸友好
-              width: '100%'
+              minHeight: 44 // 移动端触摸友好
             }}
           >
             {busy ? '识别中...' : '选择图片'}

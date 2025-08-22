@@ -35,6 +35,9 @@ export interface WorkStats {
   smallWeekLeaveDays: number;  // 小周请假天数
   futureSmallWeekDays: number; // 未来的小周天数
   futureWorkDays: number;      // 从今天开始的剩余工作日数
+  todayRequiredHours: number;  // 今天的工时要求
+  todayActualHours: number;    // 今天的实际工时
+  todayIsSmallWeek: boolean;   // 今天是否为小周
 }
 
 export interface MonthData {
