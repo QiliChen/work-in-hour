@@ -149,16 +149,7 @@ function App() {
 
   // 兼容保留：由子组件直接调用 onUpdateWorkDay
 
-  // 清除所有数据（调试用）
-  const handleClearData = () => {
-    if (confirm('确定要清除所有数据吗？')) {
-      localStorage.removeItem('workDays');
-      localStorage.removeItem('workSettings');
-      setWorkDays([]);
-      setSettings(defaultSettings);
-      console.log('数据已清除');
-    }
-  };
+
 
   return (
     <div className="app-container">
@@ -278,28 +269,7 @@ function App() {
           }}
         />
 
-        {/* Quick Actions */}
-        <div className="card quick-actions">
-          <h2>快速操作</h2>
-          <div className="actions-grid">
-            <button
-              onClick={() => setCurrentMonth(new Date())}
-              className="action-button"
-            >
-              <div className="action-title">返回本月</div>
-              <div className="action-description">跳转到当前月份</div>
-            </button>
 
-            <button
-              onClick={handleClearData}
-              className="action-button"
-              style={{ backgroundColor: '#fee2e2', borderColor: '#ef4444' }}
-            >
-              <div className="action-title">清除数据</div>
-              <div className="action-description">清除所有数据（调试用）</div>
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* 编辑功能由日历组件内置 */}

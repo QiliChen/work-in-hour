@@ -27,6 +27,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const [showHourInput, setShowHourInput] = useState(false);
   const [hourInput, setHourInput] = useState('');
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   // 菜单固定居中，无需坐标状态
 
   const monthStart = startOfMonth(currentMonth);
@@ -73,9 +74,16 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   };
 
   // 判断是否为当前月份
-  const isCurrentMonth = (date: Date) => {
-    return date.getMonth() === currentMonth.getMonth() && 
+    const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === currentMonth.getMonth() &&
            date.getFullYear() === currentMonth.getFullYear();
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
   };
 
   // 以下一帧再展示菜单，避免首次闪到点击位置再回到屏幕中间
@@ -225,39 +233,59 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     setHourInput('');
   };
 
+  const handleReturnToCurrentMonth = () => {
+    const today = new Date();
+    onMonthChange(today);
+  };
+
+  const handleClearData = () => {
+    if (window.confirm('确定要清除所有数据吗？此操作不可撤销！')) {
+      localStorage.removeItem('workHourSettings');
+      localStorage.removeItem('workHourData');
+      window.location.reload();
+    }
+  };
+
   const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
 
   return (
     <div className="work-calendar">
       {/* Calendar Header */}
       <div className="calendar-header">
-        <button
-          onClick={handlePrevMonth}
-          className="nav-button"
-        >
-          ← 上月
-        </button>
+        <div className="header-left">
+          <button
+            onClick={handlePrevMonth}
+            className="nav-button"
+          >
+            ← 上月
+          </button>
+          <button 
+            onClick={handleReturnToCurrentMonth}
+            className="quick-action-btn"
+          >
+            返回本月
+          </button>
+        </div>
         <h2 className="calendar-title">
           {format(currentMonth, 'yyyy年MM月', { locale: zhCN })}
         </h2>
-        <button
-          onClick={handleNextMonth}
-          className="nav-button"
-        >
-          下月 →
-        </button>
+        <div className="header-right">
+          <button 
+            onClick={handleClearData}
+            className="quick-action-btn clear-btn"
+          >
+            清除数据
+          </button>
+          <button
+            onClick={handleNextMonth}
+            className="nav-button"
+          >
+            下月 →
+          </button>
+        </div>
       </div>
 
-      {/* Instructions */}
-      <div className="calendar-instructions">
-        <p>💡 使用说明：</p>
-        <ul>
-          <li>点击当前月份的工作日/周六/周日显示操作菜单</li>
-          <li>可以输入工时、设置小周状态或请假</li>
-          <li>绿色=完成，黄色=部分完成，红色=未完成</li>
-          <li>灰色=休息日或未标记的周末</li>
-        </ul>
-      </div>
+
 
       {/* Week Days Header */}
       <div className="calendar-grid">
@@ -278,12 +306,13 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
           const isSaturdayDate = isSaturday(date);
           const isSundayDate = isSunday(date);
           const isCurrentMonthDate = isCurrentMonth(date);
+          const isTodayDate = isToday(date);
 
           return (
             <div
               key={index}
               onClick={() => handleDayClick(date)}
-              className={`calendar-day ${status} ${!isCurrentMonthDate ? 'other-month' : ''} ${!isWorkDayDate && !isSaturdayDate && !isSundayDate ? 'weekend' : ''}`}
+              className={`calendar-day ${status} ${!isCurrentMonthDate ? 'other-month' : ''} ${!isWorkDayDate && !isSaturdayDate && !isSundayDate ? 'weekend' : ''} ${isTodayDate ? 'today' : ''}`}
             >
               <div className="day-number">
                 {format(date, 'd')}
@@ -317,6 +346,30 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                   {workDay.isLeave && (
                     <div className="leave-badge">
                       请假
+                    </div>
+                  )}
+                                     {/* 本月今天之前未报备提醒 */}
+                   {(() => {
+                     const today = new Date();
+                     today.setHours(0, 0, 0, 0);
+                     const dayDate = new Date(dateStr);
+                     return dayDate < today && 
+                            dayDate.getMonth() === currentMonth.getMonth() &&
+                            dayDate.getFullYear() === currentMonth.getFullYear() &&
+                            workDay.requiredHours > 0 && 
+                            !workDay.isLeave && 
+                            !workDay.hours;
+                   })() && (
+                    <div style={{ 
+                      backgroundColor: '#fef3c7', 
+                      border: '1px solid #f59e0b',
+                      borderRadius: '4px',
+                      padding: '2px 4px',
+                      fontSize: '0.7rem',
+                      color: '#92400e',
+                      marginTop: '2px'
+                    }}>
+                      待报备
                     </div>
                   )}
                 </div>
@@ -399,8 +452,28 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
         </div>
         <div className="legend-item">
           <div className="legend-color" style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', borderColor: '#3b82f6' }}></div>
-          <span>小周</span>
-        </div>
+                  <span>小周</span>
+      </div>
+    </div>
+
+      {/* Instructions */}
+      <div className="calendar-instructions">
+        <button 
+          onClick={() => setShowInstructions(!showInstructions)}
+          className="instructions-toggle"
+        >
+          💡 使用说明 {showInstructions ? '▼' : '▶'}
+        </button>
+        {showInstructions && (
+          <div className="instructions-content">
+            <ul>
+              <li>点击当前月份的工作日/周六/周日显示操作菜单</li>
+              <li>可以输入工时、设置小周状态或请假</li>
+              <li>绿色=完成，黄色=部分完成，红色=未完成</li>
+              <li>灰色=休息日或未标记的周末</li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

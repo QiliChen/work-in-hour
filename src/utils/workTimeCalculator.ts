@@ -156,6 +156,22 @@ export class WorkTimeCalculator {
     const smallWeekLeaveDays = workDays.filter(day => day.isSmallWeek && day.isLeave).length;
     const leaveDays = normalWeekLeaveDays + smallWeekLeaveDays;
 
+    // 计算未来的小周天数（从今天开始往后）
+    const today = new Date();
+    
+    const futureSmallWeekDays = workDays.filter(day => {
+      const dayDate = new Date(day.date);
+      return dayDate >= today && day.isSmallWeek && !day.isLeave;
+    }).length;
+
+    // 计算从今天开始的剩余工作日数（包括今天）
+    const futureWorkDays = workDays.filter(day => {
+      const dayDate = new Date(day.date);
+      return dayDate >= today && day.requiredHours > 0 && !day.isLeave;
+    }).length;
+
+
+
     return {
       totalDays,
       totalHours,
@@ -168,7 +184,9 @@ export class WorkTimeCalculator {
       leaveDays,
       workedDays,
       normalWeekLeaveDays, // 工作日请假天数
-      smallWeekLeaveDays   // 小周请假天数
+      smallWeekLeaveDays,  // 小周请假天数
+      futureSmallWeekDays, // 未来的小周天数
+      futureWorkDays       // 从今天开始的剩余工作日数
     };
   }
 

@@ -33,6 +33,8 @@ export interface WorkStats {
   workedDays: number; // 已工作天数（有输入工时的天数）
   normalWeekLeaveDays: number; // 工作日请假天数
   smallWeekLeaveDays: number;  // 小周请假天数
+  futureSmallWeekDays: number; // 未来的小周天数
+  futureWorkDays: number;      // 从今天开始的剩余工作日数
 }
 
 export interface MonthData {

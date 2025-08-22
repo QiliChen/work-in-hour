@@ -333,11 +333,45 @@ body {
   border-bottom: 2px solid #f1f5f9;
 }
 
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .calendar-title {
   font-size: 2rem;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
+}
+
+
+
+.quick-action-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.quick-action-btn.clear-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.quick-action-btn.clear-btn:hover {
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
 .calendar-nav {
@@ -389,25 +423,43 @@ body {
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.calendar-instructions p {
-  font-weight: 700;
+.instructions-toggle {
+  background: none;
+  border: none;
   color: #1e40af;
-  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
 }
 
-.calendar-instructions ul {
+.instructions-toggle:hover {
+  color: #3b82f6;
+}
+
+.instructions-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.instructions-content ul {
   list-style: none;
   padding: 0;
 }
 
-.calendar-instructions li {
+.instructions-content li {
   color: #475569;
   margin-bottom: 0.5rem;
   padding-left: 1.5rem;
   position: relative;
 }
 
-.calendar-instructions li::before {
+.instructions-content li::before {
   content: '•';
   color: #3b82f6;
   font-weight: bold;
@@ -483,6 +535,24 @@ body {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: #94a3b8;
   color: #475569;
+}
+
+.calendar-day.today {
+  border: 3px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  position: relative;
+}
+
+.calendar-day.today .day-number::after {
+  content: '今天';
+  margin-left: 6px;
+  background: #3b82f6;
+  color: white;
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-weight: bold;
+  vertical-align: middle;
 }
 
 .day-number {
@@ -699,66 +769,7 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-/* 快速操作样式 */
-.quick-actions {
-  padding: 2.5rem;
-  animation: fadeInUp 0.8s ease-out 0.6s both;
-}
 
-.quick-actions h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.action-button {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 2rem 1.5rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-}
-
-.action-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-}
-
-.action-button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-}
-
-.action-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 0.75rem;
-}
-
-.action-description {
-  font-size: 1rem;
-  color: #64748b;
-  line-height: 1.5;
-}
 
 /* 未来展望样式 */
 .future-outlook {

@@ -74,9 +74,18 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
           <div className="breakdown-item">
             <div className="breakdown-icon">🏖️</div>
             <div className="breakdown-content">
-              <div className="breakdown-label">请假天数</div>
-              <div className="breakdown-value">{stats.leaveDays} 天</div>
-              <div className="breakdown-note">0小时/天</div>
+              <div className="breakdown-label">工作日请假</div>
+              <div className="breakdown-value">{stats.normalWeekLeaveDays} 天</div>
+              <div className="breakdown-note">11小时/天</div>
+            </div>
+          </div>
+          
+          <div className="breakdown-item">
+            <div className="breakdown-icon">🌴</div>
+            <div className="breakdown-content">
+              <div className="breakdown-label">小周请假</div>
+              <div className="breakdown-value">{stats.smallWeekLeaveDays} 天</div>
+              <div className="breakdown-note">8小时/天</div>
             </div>
           </div>
         </div>
@@ -84,6 +93,8 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
         {/* 未来展望 */}
         <div className="future-outlook">
           <h3>未来展望</h3>
+          
+
           
           {/* 基于剩余工作日的展望 */}
           <div className="outlook-card">
@@ -98,25 +109,25 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
               </div>
               <div className="outlook-row">
                 <span>剩余工作日：</span>
-                <span className="outlook-value">{stats.totalDays - stats.workedDays} 天</span>
+                <span className="outlook-value">{stats.futureWorkDays} 天</span>
               </div>
               <div className="outlook-row">
                 <span>其中小周天数：</span>
-                <span className="outlook-value">{Math.max(0, stats.smallWeekDays - (stats.smallWeekDays - stats.smallWeekLeaveDays))} 天</span>
+                <span className="outlook-value">{stats.futureSmallWeekDays} 天</span>
               </div>
               <div className="outlook-row">
                 <span>预计可完成：</span>
                 <span className="outlook-value">
-                  {(stats.totalDays - stats.workedDays - stats.leaveDays) * 11}h
+                  {((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8)}h
                 </span>
               </div>
               <div className="outlook-row">
                 <span>工时差值：</span>
                 <span className={`outlook-value ${
-                  ((stats.totalDays - stats.workedDays - stats.leaveDays) * 11) - stats.remainingHours >= 0 ? 'positive' : 'negative'
+                  ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours >= 0 ? 'positive' : 'negative'
                 }`}>
                   {formatHours(
-                    ((stats.totalDays - stats.workedDays - stats.leaveDays) * 11) - stats.remainingHours
+                    ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours
                   )}h
                 </span>
               </div>
