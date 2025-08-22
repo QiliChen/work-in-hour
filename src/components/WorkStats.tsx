@@ -127,17 +127,22 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
                   ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours >= 0 ? 'positive' : 'negative'
                 }`}>
                   {(() => {
-                    const baseDiff = ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours;
-                    const todayEstimatedHours = stats.todayRequiredHours - stats.todayActualHours;
-                    const totalDiff = baseDiff + todayEstimatedHours;
-                    
+                    // 采用防重复公式：
+                    // 总容量 = 明天及以后 required 求和 + 今天修正
+                    // 今天修正：仅当今天未填写且有要求、且非请假时，取 11/8；其余情况取 0（避免与 remainingHours 的 todayActual 抵消后再被重复加一次）
+                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0)
+                      ? stats.todayPred
+                      : 0;
+                    const adjustedCapacity = stats.futureRequiredSum + todayFix;
+
+                    const totalDiff = adjustedCapacity - stats.remainingHours;
                     let displayText = formatHours(totalDiff) + 'h';
-                    // 只有当今天有工时要求但还没填写时，才显示预估信息
-                    if (stats.todayRequiredHours > 0 && stats.todayActualHours === 0) {
-                      const todayHours = stats.todayIsSmallWeek ? 8 : 11;
-                      displayText += `(今天预估+${todayHours}h)`;
+
+                    // 文案提示：今天的计入策略
+                    if (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) {
+                      displayText += `(今天预估+${formatHours(stats.todayPred)}h)`;
                     }
-                    
+
                     return displayText;
                   })()}
                 </span>

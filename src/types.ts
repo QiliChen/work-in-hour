@@ -38,6 +38,10 @@ export interface WorkStats {
   todayRequiredHours: number;  // 今天的工时要求
   todayActualHours: number;    // 今天的实际工时
   todayIsSmallWeek: boolean;   // 今天是否为小周
+  todayIsLeave: boolean;       // 今天是否请假
+  futureRequiredSum: number;   // 明天及以后容量和
+  todayPred: number;           // 今天预测容量
+  todayUsed: number;           // 今天用于容量的值
 }
 
 export interface MonthData {

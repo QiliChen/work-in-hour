@@ -156,26 +156,47 @@ export class WorkTimeCalculator {
     const smallWeekLeaveDays = workDays.filter(day => day.isSmallWeek && day.isLeave).length;
     const leaveDays = normalWeekLeaveDays + smallWeekLeaveDays;
 
-    // 计算未来的小周天数（从今天开始往后）
+    // 计算未来的小周天数（从今天往后，不含今天）
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
+    const todayStr = format(today, 'yyyy-MM-dd');
     const futureSmallWeekDays = workDays.filter(day => {
+      if (day.date === todayStr) return false; // 严格排除今天
       const dayDate = new Date(day.date);
-      return dayDate >= today && day.isSmallWeek && !day.isLeave;
+      return dayDate > today && day.isSmallWeek && !day.isLeave;
     }).length;
 
-    // 计算从今天开始的剩余工作日数（包括今天）
+    // 计算从明天开始的剩余工作日数（不含今天）
     const futureWorkDays = workDays.filter(day => {
+      if (day.date === todayStr) return false; // 严格排除今天
       const dayDate = new Date(day.date);
-      return dayDate >= today && day.requiredHours > 0 && !day.isLeave;
+      return dayDate > today && day.requiredHours > 0 && !day.isLeave;
     }).length;
+
+    // 未来（不含今天）可完成容量（按每天的 requiredHours 精确求和）
+    const futureRequiredSum = workDays.reduce((sum, day) => {
+      if (day.date === todayStr) return sum; // 严格排除今天
+      const dayDate = new Date(day.date);
+      if (dayDate > today && day.requiredHours > 0 && !day.isLeave) {
+        return sum + day.requiredHours;
+      }
+      return sum;
+    }, 0);
 
     // 获取今天的工时信息
-    const todayStr = format(today, 'yyyy-MM-dd');
+    // todayStr 已在上方声明
     const todayWorkDay = workDays.find(day => day.date === todayStr);
     const todayRequiredHours = todayWorkDay?.requiredHours || 0;
     const todayActualHours = todayWorkDay?.hours || 0;
     const todayIsSmallWeek = todayWorkDay?.isSmallWeek || false;
+    const todayIsLeave = todayWorkDay?.isLeave || false;
+
+    // 今天的预测与使用值（在获取信息之后计算）
+    const todayPred = (!todayIsLeave && todayRequiredHours > 0) ? todayRequiredHours : 0;
+    const todayUsed = (!todayIsLeave && todayRequiredHours > 0)
+      ? (todayActualHours > 0 ? todayActualHours : todayRequiredHours)
+      : 0;
 
 
 
@@ -196,7 +217,11 @@ export class WorkTimeCalculator {
       futureWorkDays,      // 从今天开始的剩余工作日数
       todayRequiredHours,  // 今天的工时要求
       todayActualHours,    // 今天的实际工时
-      todayIsSmallWeek     // 今天是否为小周
+      todayIsSmallWeek,    // 今天是否为小周
+      todayIsLeave,        // 今天是否请假
+      futureRequiredSum,   // 未来（不含今天）精确容量和
+      todayPred,           // 今天的预测容量（请假或无要求为0）
+      todayUsed            // 今天实际用于容量的数值（已填用实际，否则用预测；请假为0）
     };
   }
 
