@@ -15,14 +15,10 @@
     margin-bottom: 1rem !important;
   }
 
-  /* 第一行：上月/下月导航 - 重新组织布局 */
-  .calendar-header {
-    position: relative !important;
-  }
-
+  /* 第一行：上月/下月导航 */
   .calendar-nav {
     display: flex !important;
-    justify-content: flex-start !important;
+    justify-content: space-between !important;
     align-items: center !important;
   }
 
@@ -47,26 +43,6 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
   }
 
-  /* 把下月按钮移到第一行右侧 */
-  .header-right .nav-button {
-    position: absolute !important;
-    top: 0 !important;
-    right: 0 !important;
-    background: #3b82f6 !important;
-    color: #fff !important;
-    height: 36px !important;
-    border-radius: 8px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 0 16px !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-    border: none !important;
-  }
-
-  .header-right .nav-button:hover {
-    background: #2563eb !important;
-  }
-
   /* 第二行：日期标题 */
   .calendar-title {
     font-size: 20px !important;
@@ -81,7 +57,6 @@
     display: flex !important;
     justify-content: center !important;
     gap: 10px !important;
-    position: relative !important;
   }
 
   .header-right .quick-action-btn {
@@ -96,7 +71,6 @@
     border: none !important;
     flex: 1 !important;
     max-width: 140px !important;
-    position: static !important;
   }
 
   .header-right .quick-action-btn.clear-btn {
