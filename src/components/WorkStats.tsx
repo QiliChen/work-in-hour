@@ -106,20 +106,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
             <div className="outlook-content">
               <div className="outlook-row">
                 <span>当前剩余工时：</span>
-                <span className="outlook-value">
-                  {(() => {
-                    const base = stats.remainingHours;
-                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
-                    return (
-                      <>
-                        <span className="outlook-strong">{formatHours(base)}h</span>
-                        {todayFix > 0 && (
-                          <span className="outlook-hint"> (今天预估+{formatHours(todayFix)}h)</span>
-                        )}
-                      </>
-                    );
-                  })()}
-                </span>
+                <span className="outlook-value">{formatHours(stats.remainingHours)}h</span>
               </div>
               <div className="outlook-row">
                 <span>剩余工作日：</span>
@@ -133,9 +120,9 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
                 <span>预计可完成：</span>
                 <span className="outlook-value">
                   {(() => {
+                    // 预计可完成容量：n*11 + b*8（已将今天计入 futureWorkDays/futureSmallWeekDays，无需额外叠加今天）
                     const futureCap = (stats.futureWorkDays - stats.futureSmallWeekDays) * settings.normalHours + stats.futureSmallWeekDays * settings.smallWeekHours;
-                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
-                    return formatHours(futureCap + todayFix);
+                    return formatHours(futureCap);
                   })()}h
                 </span>
               </div>
