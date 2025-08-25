@@ -106,7 +106,20 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
             <div className="outlook-content">
               <div className="outlook-row">
                 <span>当前剩余工时：</span>
-                <span className="outlook-value">{formatHours(stats.remainingHours)}h</span>
+                <span className="outlook-value">
+                  {(() => {
+                    const base = stats.remainingHours;
+                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
+                    return (
+                      <>
+                        <span className="outlook-strong">{formatHours(base)}h</span>
+                        {todayFix > 0 && (
+                          <span className="outlook-hint"> (今天预估+{formatHours(todayFix)}h)</span>
+                        )}
+                      </>
+                    );
+                  })()}
+                </span>
               </div>
               <div className="outlook-row">
                 <span>剩余工作日：</span>
