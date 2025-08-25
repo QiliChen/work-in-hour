@@ -30,7 +30,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
     const dateRegex = /(\d{4})[\-\/年](\d{2})[\-\/月](\d{2})\s*\(\s*星期\s*[一二三四五六日]\s*\)/;
     // 12.4小时 / 12.4 小时 / 12.4h / 12h（必须带单位，避免误匹配年份前两位"20"）
     // 支持OCR识别出的"小 时"（中间有空格），移除\b边界限制
-    const hoursRegex = /(\d{1,2}(?:[\.,]\d)?)\s*(?:小\s*时|小時|h|H)/i;
+    const hoursRegex = /(\d{1,3}(?:[\.,]\d)?)\s*(?:小\s*时|小時|h|H)/i;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -75,13 +75,23 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
       console.log(`  调试 - 当前行所有小时匹配:`, allMatches);
 
       if (h && h[1]) {
-        let hours = parseFloat(h[1].replace(',', '.'));
+        let raw = h[1];
+        let hours = parseFloat(raw.replace(',', '.'));
         console.log(`✓ 小时解析: ${h[1]} -> ${hours}`);
         
-        // 合理区间约束，避免异常值
-        if (hours > 14) {
-          console.log(`⚠ 小时超出上限，限制为 14`);
-          hours = 14;
+        // 纠错：OCR 常把 17.3 识别成 173 / 10.6 -> 106 / 10.9 -> 109 等
+        // 若是 3 位整数且 > 24，则尝试按“最后一位为小数位”重建
+        if (!Number.isNaN(hours) && Number.isInteger(hours) && hours >= 100 && hours <= 240) {
+          const intVal = hours as number;
+          const corrected = Math.floor(intVal / 10) + (intVal % 10) / 10;
+          console.log(`↺ 纠正三位整数为带一位小数: ${intVal} -> ${corrected}`);
+          hours = corrected;
+        }
+
+        // 合理区间约束，避免异常值（0-24）
+        if (hours > 24) {
+          console.log(`⚠ 小时超出上限，限制为 24`);
+          hours = 24;
         }
         if (hours < 0) {
           console.log(`⚠ 小时为负数，限制为 0`);
