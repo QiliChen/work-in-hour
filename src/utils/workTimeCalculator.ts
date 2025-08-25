@@ -354,6 +354,7 @@ export class WorkTimeCalculator {
 export const defaultSettings: WorkSettings = {
   normalHours: 11,
   smallWeekHours: 8,
+  paydayDay: 15,
   workWeeks: [], // 空的周配置，需要手动设置
   startDate: format(new Date(), 'yyyy-MM-dd')
 };

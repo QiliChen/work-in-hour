@@ -32,6 +32,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [normalHoursInput, setNormalHoursInput] = useState<string>('');
   const [smallWeekHoursInput, setSmallWeekHoursInput] = useState<string>('');
+  const [paydayInput, setPaydayInput] = useState<string>('');
   const [syncSpaceInput, setSyncSpaceInput] = useState<string>('');
   // 菜单固定居中，无需坐标状态
 
@@ -50,12 +51,13 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     return map;
   }, [workDays]);
 
-  // 计算当月发薪日：默认15日，若非工作日则回退至最近的工作日（requiredHours>0）
+  // 计算当月发薪日：默认 settings.paydayDay（默认15日），若非工作日则回退至最近的工作日（requiredHours>0）
   const paydayStr = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    // 从15日开始往前找最近的工作日
-    let d = new Date(year, month, 15);
+    const payday = Math.min(28, Math.max(1, settings.paydayDay ?? 15));
+    // 从设置的发薪日开始往前找最近的工作日
+    let d = new Date(year, month, payday);
     for (let i = 0; i < 7; i += 1) {
       const req = calculator.getRequiredHours(d);
       if (req > 0) {
@@ -63,9 +65,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
       }
       d.setDate(d.getDate() - 1);
     }
-    // 兜底：如果一周内都没找到（极端情况），返回15日
-    return format(new Date(year, month, 15), 'yyyy-MM-dd');
-  }, [currentMonth, calculator]);
+    // 兜底：如果一周内都没找到（极端情况），返回设置的发薪日
+    return format(new Date(year, month, payday), 'yyyy-MM-dd');
+  }, [currentMonth, calculator, settings.paydayDay]);
 
   const handlePrevMonth = () => {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
@@ -469,7 +471,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>工时设置</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div>
                 <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>工作日工时（h）</label>
                 <input
@@ -492,6 +494,18 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                   className="hour-input"
                 />
               </div>
+              <div>
+                <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>发薪日（1-28）</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={28}
+                  step={1}
+                  value={paydayInput}
+                  onChange={(e) => setPaydayInput(e.target.value)}
+                  className="hour-input"
+                />
+              </div>
             </div>
             <div>
               <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>同步空间码（可选）</label>
@@ -509,7 +523,8 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 onClick={() => {
                   const normal = Math.max(0, parseFloat(normalHoursInput) || 0);
                   const small = Math.max(0, parseFloat(smallWeekHoursInput) || 0);
-                  onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small, syncSpace: syncSpaceInput || undefined });
+                  const payday = Math.min(28, Math.max(1, parseInt(paydayInput || String(settings.paydayDay ?? 15), 10)));
+                  onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small, paydayDay: payday, syncSpace: syncSpaceInput || undefined });
                   setShowSettings(false);
                 }}
               >
