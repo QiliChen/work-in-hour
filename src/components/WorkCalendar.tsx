@@ -51,13 +51,17 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     return map;
   }, [workDays]);
 
-  // 计算当月发薪日：默认 settings.paydayDay（默认15日），若非工作日则回退至最近的工作日（requiredHours>0）
+  // 计算当月发薪日：默认 settings.paydayDay（默认15日）。
+  // 若该天不是工作日，则回退到之前最近的工作日（requiredHours>0）。
+  // 若设置为31，则视为“当月最后一天”。
   const paydayStr = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const payday = Math.min(28, Math.max(1, settings.paydayDay ?? 15));
-    // 从设置的发薪日开始往前找最近的工作日
-    let d = new Date(year, month, payday);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const configured = settings.paydayDay ?? 15;
+    const targetDay = configured === 31 ? daysInMonth : Math.min(daysInMonth, Math.max(1, configured));
+    // 从设置/换算后的发薪日开始往前找最近的工作日
+    let d = new Date(year, month, targetDay);
     for (let i = 0; i < 7; i += 1) {
       const req = calculator.getRequiredHours(d);
       if (req > 0) {
@@ -65,8 +69,8 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
       }
       d.setDate(d.getDate() - 1);
     }
-    // 兜底：如果一周内都没找到（极端情况），返回设置的发薪日
-    return format(new Date(year, month, payday), 'yyyy-MM-dd');
+    // 兜底：如果一周内都没找到（极端情况），返回设置/换算后的发薪日
+    return format(new Date(year, month, targetDay), 'yyyy-MM-dd');
   }, [currentMonth, calculator, settings.paydayDay]);
 
   const handlePrevMonth = () => {
@@ -245,7 +249,10 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const handleHourSubmit = () => {
     if (!selectedDate) return;
     
-    const hours = parseFloat(hourInput) || 0;
+    let hours = parseFloat(hourInput);
+    if (isNaN(hours)) hours = 0;
+    if (hours < 0) hours = 0;
+    if (hours > 24) hours = 24;
     onUpdateWorkDay(selectedDate, { hours });
     setShowHourInput(false);
     setSelectedDate(null);
@@ -448,9 +455,12 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
             <p>日期: {selectedDate}</p>
             <input
               type="number"
+              min={0}
+              max={24}
+              step={0.5}
               value={hourInput}
               onChange={(e) => setHourInput(e.target.value)}
-              placeholder="请输入工时（小时）"
+              placeholder="请输入工时（0-24h）"
               className="hour-input"
               autoFocus
             />
@@ -495,11 +505,11 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>发薪日（1-28）</label>
+                <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>发薪日（1-31，31=当月最后一天）</label>
                 <input
                   type="number"
                   min={1}
-                  max={28}
+                  max={31}
                   step={1}
                   value={paydayInput}
                   onChange={(e) => setPaydayInput(e.target.value)}
@@ -523,7 +533,8 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 onClick={() => {
                   const normal = Math.max(0, parseFloat(normalHoursInput) || 0);
                   const small = Math.max(0, parseFloat(smallWeekHoursInput) || 0);
-                  const payday = Math.min(28, Math.max(1, parseInt(paydayInput || String(settings.paydayDay ?? 15), 10)));
+                  const rawDay = parseInt(paydayInput || String(settings.paydayDay ?? 15), 10);
+                  const payday = Math.min(31, Math.max(1, isNaN(rawDay) ? 15 : rawDay));
                   onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small, paydayDay: payday, syncSpace: syncSpaceInput || undefined });
                   setShowSettings(false);
                 }}
