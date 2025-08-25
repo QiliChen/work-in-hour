@@ -120,21 +120,37 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
   const handlePick = () => fileRef.current?.click();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     try {
       setBusy(true);
-      setProgress('初始化OCR…');
-      const { data } = await Tesseract.recognize(f as any, lang as any, {
-        logger: (m: any) => {
-          if (m.status === 'recognizing text' && m.progress) {
-            setProgress(`识别中 ${(m.progress * 100).toFixed(0)}%`);
-          }
-        },
-      });
-      const items = parseText(data.text);
-      onImport(items, overwrite);
-      setProgress(`完成，解析到 ${items.length} 条记录`);
+      const sorted = files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      setProgress(`准备处理 ${sorted.length} 张图片…`);
+
+      const allItems: Array<{ date: string; hours: number }> = [];
+      for (let i = 0; i < sorted.length; i += 1) {
+        const f = sorted[i];
+        setProgress(`(${i + 1}/${sorted.length}) 识别：${f.name}`);
+        const { data } = await Tesseract.recognize(f as any, lang as any, {
+          logger: (m: any) => {
+            if (m.status === 'recognizing text' && m.progress) {
+              setProgress(`(${i + 1}/${sorted.length}) 识别中 ${(m.progress * 100).toFixed(0)}%：${f.name}`);
+            }
+          },
+        });
+        const items = parseText(data.text);
+        allItems.push(...items);
+      }
+
+      // 合并去重：同一天以最后一次出现为准（按文件名排序后的顺序）
+      const map = new Map<string, number>();
+      for (const it of allItems) map.set(it.date, it.hours);
+      const merged = Array.from(map.entries())
+        .map(([date, hours]) => ({ date, hours }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      onImport(merged, overwrite);
+      setProgress(`完成：共 ${sorted.length} 张图片，解析 ${merged.length} 条记录`);
     } catch (err) {
       setProgress('识别失败');
       console.error(err);
@@ -265,7 +281,7 @@ const OcrImporter: React.FC<Props> = ({ onImport }) => {
         </div>
       </div>
       
-      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+      <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleFile} />
     </div>
   );
 };
