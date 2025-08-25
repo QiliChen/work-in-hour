@@ -119,7 +119,11 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
               <div className="outlook-row">
                 <span>预计可完成：</span>
                 <span className="outlook-value">
-                  {((stats.futureWorkDays - stats.futureSmallWeekDays) * settings.normalHours + stats.futureSmallWeekDays * settings.smallWeekHours)}h
+                  {(() => {
+                    const futureCap = (stats.futureWorkDays - stats.futureSmallWeekDays) * settings.normalHours + stats.futureSmallWeekDays * settings.smallWeekHours;
+                    const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
+                    return formatHours(futureCap + todayFix);
+                  })()}h
                 </span>
               </div>
               <div className="outlook-row">
