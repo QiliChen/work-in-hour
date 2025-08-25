@@ -314,6 +314,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
             onClick={() => {
               setNormalHoursInput(String(settings.normalHours ?? 11));
               setSmallWeekHoursInput(String(settings.smallWeekHours ?? 8));
+              setPaydayInput(String(settings.paydayDay ?? 15));
               setSyncSpaceInput(settings.syncSpace ?? '');
               setShowSettings(true);
             }}
