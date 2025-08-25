@@ -4,8 +4,7 @@ import {
   downloadData, 
   generateBindCode, 
   getLocalBindCode,
-  clearLocalBindCode,
-  type SyncResponse 
+  clearLocalBindCode
 } from '../utils/syncUtils';
 
 interface DataSyncProps {
