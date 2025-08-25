@@ -3,15 +3,35 @@ import type { WorkStats as WorkStatsType } from '../types';
 
 interface WorkStatsProps {
   stats: WorkStatsType;
+  onShowOcr?: () => void;
+  onShowSync?: () => void;
 }
 
-const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
+const WorkStats: React.FC<WorkStatsProps> = ({ stats, onShowOcr, onShowSync }) => {
   const formatHours = (hours: number) => hours.toFixed(1);
 
   return (
     <div className="work-stats">
       <div className="stats-header">
         <h2 className="stats-title">工时统计</h2>
+        <div className="stats-actions">
+          {onShowOcr && (
+            <button 
+              className="btn-secondary"
+              onClick={onShowOcr}
+            >
+              📷 OCR导入
+            </button>
+          )}
+          {onShowSync && (
+            <button 
+              className="btn-secondary"
+              onClick={onShowSync}
+            >
+              ☁️ 数据同步
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="stats-grid">

@@ -3,6 +3,7 @@ import { parseISO } from 'date-fns';
 import WorkCalendar from './components/WorkCalendar';
 import OcrImporter from './components/OcrImporter';
 import WorkStats from './components/WorkStats';
+import DataSync from './components/DataSync';
 import type { WorkDay, WorkSettings } from './types';
 import { WorkTimeCalculator, defaultSettings } from './utils/workTimeCalculator';
 import { getHolidays } from './utils/holidays';
@@ -20,6 +21,7 @@ function App() {
     return savedWorkDays ? JSON.parse(savedWorkDays) : [];
   });
   const [showOcr, setShowOcr] = useState(false);
+  const [showSync, setShowSync] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => {
     setToast(msg);
@@ -182,6 +184,8 @@ function App() {
         <div className="card stats-card">
           <WorkStats
             stats={stats}
+            onShowOcr={() => setShowOcr(true)}
+            onShowSync={() => setShowSync(true)}
           />
         </div>
 
@@ -324,6 +328,17 @@ function App() {
                     }
                   }
                 }
+              }} />
+            </div>
+          </div>
+        )}
+
+        {showSync && (
+          <div className="modal-overlay" onClick={() => setShowSync(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <DataSync onSyncComplete={() => {
+                setShowSync(false);
+                showToast('数据同步完成！');
               }} />
             </div>
           </div>
