@@ -927,9 +927,9 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
-    padding: 0.5rem 0.25rem;
-    border-radius: 8px;
+    min-height: 42px;
+    padding: 0.4rem 0.2rem;
+    border-radius: 6px;
     border: none;
     background: #ffffff;
     margin-bottom: 0;
@@ -942,16 +942,16 @@ body {
   }
 
   .day-number {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     line-height: 1;
   }
 
   .day-info {
-    font-size: 0.65rem;
-    line-height: 1.2;
+    font-size: 0.6rem;
+    line-height: 1.1;
     color: #64748b;
     text-align: center;
   }
@@ -982,6 +982,29 @@ body {
     background: #ffffff;
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .stats-card {
+    padding: 1.25rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: 16px !important;
+  }
+  
+  .app-container {
+    background: #ffffff !important;
+    padding: 0.75rem !important;
+  }
+  
+  .container {
+    padding: 0 0.5rem !important;
+  }
+  
+  .app-title {
+    font-size: 2.2rem !important;
+  }
+  
+  .app-subtitle {
+    font-size: 1rem !important;
   }
 
   .calendar-header {
@@ -1324,20 +1347,42 @@ body {
 /* OCR组件移动端适配 */
 @media (max-width: 768px) {
   .ocr-button {
-    padding: 1rem 1.75rem !important;
-    font-size: 16px !important;
-    min-width: 160px !important;
-    min-height: 48px !important;
+    padding: 0.8rem 1.5rem !important;
+    font-size: 15px !important;
+    min-width: 140px !important;
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25) !important;
   }
   
   .btn-secondary {
-    padding: 1rem 1.5rem !important;
-    font-size: 16px !important;
-    min-height: 48px !important;
+    padding: 0.8rem 1.25rem !important;
+    font-size: 15px !important;
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   }
   
   .ocr-controls {
-    gap: 1.25rem !important;
+    gap: 1rem !important;
+  }
+  
+  .nav-button {
+    padding: 0.7rem 1.25rem !important;
+    font-size: 14px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+  }
+  
+  .calendar-header {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .calendar-title {
+    font-size: 1.1rem !important;
   }
 }
 
