@@ -123,13 +123,19 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
               </div>
               <div className="outlook-row">
                 <span>工时差值：</span>
-                <span className={`outlook-value ${
-                  ((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8) - stats.remainingHours >= 0 ? 'positive' : 'negative'
-                }`}>
+                <span className={`outlook-value ${(() => {
+                  const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
+                  const totalDiff = stats.futureRequiredSum + todayFix - stats.remainingHours;
+                  const isTodayAdded = (stats.todayActualHours > 0 && !stats.todayIsLeave);
+                  const isTodayPredOnly = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0 && stats.todayPred > 0);
+                  const isPositive = totalDiff >= 0;
+                  return (isPositive || isTodayAdded || isTodayPredOnly) ? 'positive' : 'negative';
+                })()}`}>
                   {(() => {
                     const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
                     const totalDiff = stats.futureRequiredSum + todayFix - stats.remainingHours;
-                    const main = `${formatHours(totalDiff)}h`;
+                    const sign = totalDiff > 0 ? '+' : '';
+                    const main = `${sign}${formatHours(totalDiff)}h`;
                     const hint = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0)
                       ? `(今天预估+${formatHours(stats.todayPred)}h)`
                       : (stats.todayActualHours > 0 && !stats.todayIsLeave ? `(今天+${formatHours(stats.todayActualHours)}h)` : '');
