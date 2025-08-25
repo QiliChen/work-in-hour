@@ -486,7 +486,7 @@ body {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
@@ -501,19 +501,20 @@ body {
 }
 
 .calendar-day {
-  min-height: 100px;
-  padding: 0.75rem;
-  border-radius: 16px;
+  min-height: 120px;
+  padding: 1rem;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .calendar-day:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 .calendar-day.weekend {
@@ -531,19 +532,19 @@ body {
 }
 
 .calendar-day.completed {
-  background: #ffffff;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
   border: 2px solid #10b981;
   color: #047857;
 }
 
 .calendar-day.partial {
-  background: #ffffff;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   border: 2px solid #f59e0b;
   color: #d97706;
 }
 
 .calendar-day.empty {
-  background: #ffffff;
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
   border: 2px solid #ef4444;
   color: #dc2626;
 }
@@ -905,12 +906,17 @@ body {
   }
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 现代化移动端 */
 @media (max-width: 768px) {
+  .app-container {
+    background: #f8fafc;
+    padding: 1rem 0.5rem;
+  }
+
   .calendar-grid {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 0.5rem;
   }
 
   .calendar-day {
@@ -918,43 +924,47 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    min-height: 50px;
-    padding: 0.75rem 1rem;
-    border-radius: 0;
+    min-height: 64px;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
     border: none;
-    border-bottom: 1px solid #f1f5f9;
     background: #ffffff;
     margin-bottom: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
   }
 
-  .calendar-day:last-child {
-    border-bottom: none;
+  .calendar-day:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   .day-number {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: #1e293b;
     margin-right: 0;
-    min-width: auto;
+    min-width: 32px;
+    text-align: left;
   }
 
   .day-info {
     flex: 1;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     line-height: 1.4;
     color: #64748b;
-    margin-left: 1rem;
+    margin-left: 1.25rem;
   }
 
   .small-week-badge,
   .leave-badge {
-    margin-left: 0.5rem;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
+    margin-left: 0.75rem;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
     background: #f1f5f9;
     color: #475569;
+    font-weight: 500;
   }
 
   .weekday-header {
@@ -962,67 +972,100 @@ body {
   }
 
   .calendar-card {
-    padding: 0;
-    background: #ffffff;
+    padding: 1rem;
+    background: transparent;
     border-radius: 0;
     box-shadow: none;
   }
 
   .calendar-header {
-    padding: 1rem;
-    margin-bottom: 0;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+    border-bottom: none;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
-  /* 苹果风格的完成状态 */
+  /* 现代化完成状态 */
   .calendar-day.completed {
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-left: 4px solid #10b981;
+  }
+
+  .calendar-day.completed .day-number {
+    color: #047857;
   }
 
   .calendar-day.completed .day-info {
     color: #059669;
   }
 
-  /* 苹果风格的部分完成状态 */
+  /* 现代化部分完成状态 */
   .calendar-day.partial {
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left: 4px solid #f59e0b;
+  }
+
+  .calendar-day.partial .day-number {
+    color: #d97706;
   }
 
   .calendar-day.partial .day-info {
     color: #d97706;
   }
 
-  /* 苹果风格的空状态 */
+  /* 现代化空状态 */
   .calendar-day.empty {
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    border-left: 4px solid #ef4444;
+  }
+
+  .calendar-day.empty .day-number {
+    color: #dc2626;
   }
 
   .calendar-day.empty .day-info {
     color: #dc2626;
   }
 
-  /* 苹果风格的周末状态 */
+  /* 现代化周末状态 */
   .calendar-day.weekend {
     background: #f8fafc;
-    border-bottom: 1px solid #f1f5f9;
+    opacity: 0.7;
+  }
+
+  .calendar-day.weekend .day-number {
+    color: #64748b;
   }
 
   .calendar-day.weekend .day-info {
     color: #64748b;
   }
 
-  /* 苹果风格的其他月份 */
+  /* 现代化其他月份 */
   .calendar-day.other-month {
     background: #f8fafc;
-    border-bottom: 1px solid #f1f5f9;
-    opacity: 0.5;
+    opacity: 0.4;
+  }
+
+  .calendar-day.other-month .day-number {
+    color: #94a3b8;
   }
 
   .calendar-day.other-month .day-info {
     color: #94a3b8;
+  }
+
+  /* 今天的特殊样式 */
+  .calendar-day.today {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+
+  .calendar-day.today .day-number {
+    color: #3b82f6;
+    font-weight: 800;
   }
 }
 
