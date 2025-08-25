@@ -28,13 +28,25 @@ export function generateBindCode(): string {
   return result;
 }
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  // 开发环境使用相对路径
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  
+  // 生产环境使用Vercel URL
+  return 'https://work-in-hour-poeib7lwk-qilichens-projects.vercel.app/api';
+}
+
 // 上传数据到云端
 export async function uploadData(bindCode: string): Promise<SyncResponse> {
   try {
     const workDays = JSON.parse(localStorage.getItem('workDays') || '[]');
     const settings = JSON.parse(localStorage.getItem('workSettings') || '{}');
     
-    const response = await fetch('/api/sync', {
+    const apiUrl = getApiBaseUrl();
+    const response = await fetch(`${apiUrl}/sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,7 +79,8 @@ export async function uploadData(bindCode: string): Promise<SyncResponse> {
 // 从云端下载数据
 export async function downloadData(bindCode: string): Promise<SyncResponse> {
   try {
-    const response = await fetch(`/api/sync?bindCode=${encodeURIComponent(bindCode)}`);
+    const apiUrl = getApiBaseUrl();
+    const response = await fetch(`${apiUrl}/sync?bindCode=${encodeURIComponent(bindCode)}`);
     const result = await response.json();
     
     if (response.ok) {
