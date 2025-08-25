@@ -2,34 +2,58 @@
 @media (max-width: 768px) {
   :root {
     --btn-radius: 8px;
-    --btn-height: 44px;
+    --btn-height: 40px;
     --gap: 8px;
   }
 
-  /* top nav buttons */
-  .nav-button,
-  .btn-primary {
-    height: var(--btn-height);
-    border-radius: var(--btn-radius);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 0 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* 强制覆盖顶部按钮样式 */
+  .calendar-header .nav-button,
+  .header-left .nav-button,
+  .header-right .nav-button,
+  .calendar-nav .nav-button {
+    background: #2563eb !important;
+    color: #fff !important;
+    height: var(--btn-height) !important;
+    border-radius: var(--btn-radius) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 0 1rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
-  .nav-button {
-    background: #2563eb;
-    color: #fff;
+
+  .calendar-header .nav-button:hover,
+  .header-left .nav-button:hover,
+  .header-right .nav-button:hover,
+  .calendar-nav .nav-button:hover {
+    background: #1d4ed8 !important;
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
   }
-  .btn-secondary {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    color: #374151;
-    height: var(--btn-height);
-    border-radius: var(--btn-radius);
-    font-size: 14px;
-    padding: 0 1.25rem;
+
+  /* OCR和清除按钮 */
+  .quick-action-btn {
+    background: #10b981 !important;
+    color: #fff !important;
+    height: var(--btn-height) !important;
+    border-radius: var(--btn-radius) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 0 1rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: none !important;
+  }
+
+  .quick-action-btn.clear-btn {
+    background: #ef4444 !important;
+  }
+
+  .quick-action-btn:hover {
+    transform: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
   }
 
   /* calendar grid */
