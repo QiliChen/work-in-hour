@@ -6,7 +6,7 @@ import WorkStats from './components/WorkStats';
 import type { WorkDay, WorkSettings } from './types';
 import { WorkTimeCalculator, defaultSettings } from './utils/workTimeCalculator';
 import { getHolidays } from './utils/holidays';
-import { fetchKv, upsertKv, supabase, ensureAuth, fetchSnapshot, upsertSnapshot } from './api/supabaseClient';
+import { fetchSnapshot, upsertSnapshot } from './api/supabaseClient';
 import './App.css';
 
 function App() {
