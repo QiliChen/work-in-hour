@@ -734,7 +734,7 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   padding: 0.5rem;
   min-width: 150px;
-  animation: menuSlideIn 0.2s ease-out;
+  animation: none;
 }
 
 @keyframes menuSlideIn {

@@ -45,6 +45,23 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     return map;
   }, [workDays]);
 
+  // 计算当月发薪日：默认15日，若非工作日则回退至最近的工作日（requiredHours>0）
+  const paydayStr = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    // 从15日开始往前找最近的工作日
+    let d = new Date(year, month, 15);
+    for (let i = 0; i < 7; i += 1) {
+      const req = calculator.getRequiredHours(d);
+      if (req > 0) {
+        return format(d, 'yyyy-MM-dd');
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    // 兜底：如果一周内都没找到（极端情况），返回15日
+    return format(new Date(year, month, 15), 'yyyy-MM-dd');
+  }, [currentMonth, calculator]);
+
   const handlePrevMonth = () => {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
     onMonthChange(newDate);
@@ -86,14 +103,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
            date.getFullYear() === today.getFullYear();
   };
 
-  // 以下一帧再展示菜单，避免首次闪到点击位置再回到屏幕中间
+  // 直接展示居中菜单，避免多余的隐藏/显示引起的闪动
   const openMenuCentered = () => {
-    setShowActionMenu(false);
-    if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
-      window.requestAnimationFrame(() => setShowActionMenu(true));
-    } else {
-      setTimeout(() => setShowActionMenu(true), 0);
-    }
+    setShowActionMenu(true);
   };
 
   const getDayStatus = (date: Date) => {
@@ -154,20 +166,25 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     let newWorkWeeks = [...settings.workWeeks];
     
     if (newIsSmallWeek) {
+      // 先移除与该周重叠的任何配置，避免重复/冲突
+      newWorkWeeks = newWorkWeeks.filter(week => {
+        const ws = new Date(week.weekStart);
+        const we = new Date(week.weekEnd);
+        return we < weekStart || ws > weekEnd;
+      });
       // 添加小周配置
-      const existingIndex = newWorkWeeks.findIndex(week => week.weekStart === weekStartStr);
-      if (existingIndex >= 0) {
-        newWorkWeeks[existingIndex] = { ...newWorkWeeks[existingIndex], isSmallWeek: true };
-      } else {
-        newWorkWeeks.push({
-          weekStart: weekStartStr,
-          weekEnd: weekEndStr,
-          isSmallWeek: true
-        });
-      }
+      newWorkWeeks.push({
+        weekStart: weekStartStr,
+        weekEnd: weekEndStr,
+        isSmallWeek: true
+      });
     } else {
-      // 移除小周配置
-      newWorkWeeks = newWorkWeeks.filter(week => week.weekStart !== weekStartStr);
+      // 关闭：移除任何覆盖所选日期所在周的配置（而非仅按 weekStart 匹配）
+      newWorkWeeks = newWorkWeeks.filter(week => {
+        const ws = new Date(week.weekStart);
+        const we = new Date(week.weekEnd);
+        return !(ws <= selectedDateObj && selectedDateObj <= we);
+      });
     }
     
     const newSettings = { ...settings, workWeeks: newWorkWeeks };
@@ -176,13 +193,14 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     // 重新计算该日期的工时要求
     const calculator = new WorkTimeCalculator(newSettings);
     const newRequiredHours = calculator.getRequiredHours(selectedDateObj);
-    
     console.log(`切换小周状态: ${selectedDate}, 新状态: ${newIsSmallWeek}, 新工时要求: ${newRequiredHours}`);
     
     onUpdateWorkDay(selectedDate, {
       isSmallWeek: newIsSmallWeek,
       requiredHours: newRequiredHours,
-      hours: 0 // 切换小周状态时重置工时
+      hours: 0,
+      // 当从小周关闭为普通周六（通常无要求）时，同时清除请假标记
+      isLeave: newIsSmallWeek ? workDay.isLeave : false
     });
     
     setShowActionMenu(false);
@@ -350,6 +368,23 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 return null;
               })()}
 
+              {/* 发薪日标识 */}
+              {dateStr === paydayStr && (
+                <div style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '8px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  borderRadius: '10px',
+                  padding: '2px 6px',
+                  fontSize: '0.7rem',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}>
+                  💰发薪日
+                </div>
+              )}
+
               {(isWorkDayDate || isSaturdayDate || isSundayDate) && workDay && (
                 <div className="day-info">
                   <div>工时: {workDay.hours}h</div>
@@ -435,15 +470,30 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button onClick={handleInputHours} className="action-menu-item">
-              输入工时
-            </button>
-            <button onClick={handleToggleSmallWeek} className="action-menu-item">
-              切换小周状态
-            </button>
-            <button onClick={handleToggleLeave} className="action-menu-item">
-              切换请假状态
-            </button>
+            {(() => {
+              const workDay = selectedDate ? workDayMap.get(selectedDate) : undefined;
+              const selectedDateObj = selectedDate ? new Date(selectedDate) : undefined;
+              const isSaturdaySelected = selectedDateObj ? isSaturday(selectedDateObj) : false;
+              const canToggleLeave = !!(workDay && workDay.requiredHours > 0);
+
+              return (
+                <>
+                  <button onClick={handleInputHours} className="action-menu-item">
+                    输入工时
+                  </button>
+                  {isSaturdaySelected && (
+                    <button onClick={handleToggleSmallWeek} className="action-menu-item">
+                      {workDay?.isSmallWeek ? '关闭小周' : '开启小周'}
+                    </button>
+                  )}
+                  {canToggleLeave && (
+                    <button onClick={handleToggleLeave} className="action-menu-item">
+                      {workDay?.isLeave ? '关闭请假' : '开启请假'}
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
