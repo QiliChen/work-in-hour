@@ -18,6 +18,7 @@ export interface WorkSettings {
   smallWeekHours: number; // 小周工时（8小时）
   workWeeks: WorkWeek[]; // 按周设置的小周配置
   startDate: string; // 开始跟踪的日期
+  syncSpace?: string; // 同步空间码（无账号同步）
 }
 
 export interface WorkStats {

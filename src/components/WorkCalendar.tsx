@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { format, getDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { WorkDay, WorkSettings } from '../types';
+import { deleteSpace } from '../api/supabaseClient';
 import { WorkTimeCalculator } from '../utils/workTimeCalculator';
 import { getHolidayNameSync, isWorkdayAdjustmentSync } from '../utils/holidays';
 
@@ -31,6 +32,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [normalHoursInput, setNormalHoursInput] = useState<string>('');
   const [smallWeekHoursInput, setSmallWeekHoursInput] = useState<string>('');
+  const [syncSpaceInput, setSyncSpaceInput] = useState<string>('');
   // 菜单固定居中，无需坐标状态
 
   const monthStart = startOfMonth(currentMonth);
@@ -259,9 +261,15 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
     onMonthChange(today);
   };
 
-  const handleClearData = () => {
-    if (window.confirm('确定要清除所有数据吗？此操作不可撤销！')) {
-      // 使用实际持久化的键名
+  const handleClearData = async () => {
+    if (!window.confirm('确定要清除所有数据并解绑当前空间吗？此操作不可撤销！')) return;
+    try {
+      // 若设置了同步空间码，则同时清空该空间在云端的数据
+      if ((settings as any)?.syncSpace) {
+        await deleteSpace((settings as any).syncSpace as string);
+      }
+    } finally {
+      // 清除本地持久化
       localStorage.removeItem('workSettings');
       localStorage.removeItem('workDays');
       // 可选：清理节假日缓存（若存在）
@@ -297,6 +305,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
             onClick={() => {
               setNormalHoursInput(String(settings.normalHours ?? 11));
               setSmallWeekHoursInput(String(settings.smallWeekHours ?? 8));
+              setSyncSpaceInput(settings.syncSpace ?? '');
               setShowSettings(true);
             }}
             className="quick-action-btn"
@@ -360,7 +369,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
             <div
               key={index}
               onClick={() => handleDayClick(date)}
-              className={`calendar-day ${status} ${!isCurrentMonthDate ? 'other-month' : ''} ${!isWorkDayDate && !isSaturdayDate && !isSundayDate ? 'weekend' : ''} ${isTodayDate ? 'today' : ''}`}
+              className={`calendar-day ${status} ${!isCurrentMonthDate ? 'other-month' : ''} ${!isWorkDayDate && !isSaturdayDate && !isSundayDate ? 'weekend' : ''} ${isTodayDate ? 'today' : ''} ${dateStr === paydayStr ? 'payday' : ''}`}
             >
               <div className="day-number">
                 {format(date, 'd')}
@@ -382,22 +391,7 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 return null;
               })()}
 
-              {/* 发薪日标识 */}
-              {dateStr === paydayStr && (
-                <div style={{
-                  position: 'absolute',
-                  right: '8px',
-                  top: '8px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  borderRadius: '10px',
-                  padding: '2px 6px',
-                  fontSize: '0.7rem',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                }}>
-                  💰发薪日
-                </div>
-              )}
+
 
               {(isWorkDayDate || isSaturdayDate || isSundayDate) && workDay && (
                 <div className="day-info">
@@ -499,19 +493,41 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
                 />
               </div>
             </div>
+            <div>
+              <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>同步空间码（可选）</label>
+              <input
+                type="text"
+                value={syncSpaceInput}
+                onChange={(e) => setSyncSpaceInput(e.target.value.trim())}
+                className="hour-input"
+                placeholder="填写相同空间码以在多端同步"
+              />
+            </div>
             <div className="modal-actions">
               <button
                 className="btn-primary"
                 onClick={() => {
                   const normal = Math.max(0, parseFloat(normalHoursInput) || 0);
                   const small = Math.max(0, parseFloat(smallWeekHoursInput) || 0);
-                  onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small });
+                  onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small, syncSpace: syncSpaceInput || undefined });
                   setShowSettings(false);
                 }}
               >
                 保存
               </button>
               <button className="btn-secondary" onClick={() => setShowSettings(false)}>取消</button>
+              {settings.syncSpace && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    // 清空当前空间码（仅本地），同时提示使用外部“清除数据”来解绑并清空云端数据
+                    onUpdateSettings({ ...settings, syncSpace: undefined });
+                    setSyncSpaceInput('');
+                  }}
+                >
+                  清空空间码
+                </button>
+              )}
             </div>
           </div>
         </div>

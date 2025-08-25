@@ -6,12 +6,16 @@ import WorkStats from './components/WorkStats';
 import type { WorkDay, WorkSettings } from './types';
 import { WorkTimeCalculator, defaultSettings } from './utils/workTimeCalculator';
 import { getHolidays } from './utils/holidays';
+import { fetchKv, upsertKv, supabase, ensureAuth, fetchSnapshot, upsertSnapshot } from './api/supabaseClient';
 import './App.css';
 
 function App() {
   const [settings, setSettings] = useState<WorkSettings>(() => {
     const savedSettings = localStorage.getItem('workSettings');
-    return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+    const base = savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+    // 永远不要从本地持久化还原 syncSpace（只走 sessionStorage）
+    if ((base as any).syncSpace) delete (base as any).syncSpace;
+    return base;
   });
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -21,6 +25,8 @@ function App() {
   });
   const [showOcr, setShowOcr] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [hasSynced, setHasSynced] = useState(false); // 首次云端同步完成前，禁止本地反向写入
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false); // 批量更新期间暂停云端同步
   const showToast = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 2200);
@@ -50,7 +56,7 @@ function App() {
     });
   };
 
-  // 初始化公假日数据
+  // 初始化数据（含云端同步）; 当 syncSpace 变化时重新执行
   useEffect(() => {
     const initHolidays = async () => {
       const currentYear = new Date().getFullYear();
@@ -64,8 +70,51 @@ function App() {
       }
     };
     
+    const initCloud = async () => {
+      try {
+        // 如果填写了空间码，优先使用空间码；否则走匿名登录
+        const spaceCtx = { spaceId: (settings as any)?.syncSpace || undefined } as const;
+        if (!spaceCtx.spaceId) return; // 无同步码则不走云端
+        const snap = await fetchSnapshot(spaceCtx);
+        if (snap && snap.workSettings && snap.workDays) {
+          const { syncSpace: _omit, ...cloudSettingsNoSpace } = (snap.workSettings as any) || {};
+          setSettings(prev => ({ ...prev, ...cloudSettingsNoSpace }));
+          setWorkDays(snap.workDays as any);
+        } else {
+          // 远端无值 → 以本地为准写回（一次性）
+          await upsertSnapshot({ workSettings: settings, workDays }, spaceCtx);
+        }
+      } catch (e) {
+        console.warn('云端初始化失败：', e);
+      }
+    };
+
     initHolidays();
-  }, []);
+    setHasSynced(false);
+    initCloud().finally(() => setHasSynced(true));
+
+    // 实时订阅暂时关闭以减少API调用
+    // const spaceId = (settings as any)?.syncSpace || undefined;
+    // let sub: any = null;
+    // if (spaceId) {
+    //   sub = supabase.channel('kv-sync')
+    //     .on('postgres_changes', { event: '*', schema: 'public', table: 'kv_store' }, (payload) => {
+    //       const { key, value, user_id } = payload.new as any;
+    //       if (user_id !== spaceId) return; // 仅处理当前空间的数据
+    //       if (key === 'workSettings') {
+    //         const { syncSpace: _omit, ...valNoSpace } = value || {};
+    //         setSettings((prev) => ({ ...prev, ...valNoSpace }));
+    //       } else if (key === 'workDays') {
+    //         setWorkDays(value as any);
+    //       }
+    //     })
+    //     .subscribe();
+    // }
+
+    // return () => {
+    //   if (sub) supabase.removeChannel(sub);
+    // };
+  }, [settings?.syncSpace]);
 
   // 随月份变化预取该年的节假日，确保同步查询可用
   useEffect(() => {
@@ -81,17 +130,42 @@ function App() {
     run();
   }, [currentMonth]);
 
-  // 保存设置到本地存储
+  // 在首次渲染时，用 sessionStorage（仅当前会话）恢复 syncSpace
   useEffect(() => {
-    localStorage.setItem('workSettings', JSON.stringify(settings));
+    const s = sessionStorage.getItem('syncSpace');
+    if (s) {
+      setSettings(prev => ({ ...prev, syncSpace: s } as any));
+    }
+  }, []);
+
+  // 保存设置到本地存储（不持久化 syncSpace）
+  useEffect(() => {
+    const { syncSpace: _omit, ...persist } = (settings as any) || {};
+    localStorage.setItem('workSettings', JSON.stringify(persist));
     // 设置改变后，基于新规则重算当前月 requiredHours 与小周标记
     recomputeCurrentMonthDays();
   }, [settings]);
+
+  // 同步 syncSpace 到 sessionStorage（便于刷新保持，但不会跨浏览器/账号）
+  useEffect(() => {
+    const spaceId = (settings as any)?.syncSpace || '';
+    if (spaceId) sessionStorage.setItem('syncSpace', spaceId);
+    else sessionStorage.removeItem('syncSpace');
+  }, [settings?.syncSpace]);
 
   // 保存工作数据到本地存储
   useEffect(() => {
     localStorage.setItem('workDays', JSON.stringify(workDays));
   }, [workDays]);
+
+  // 统一的云端同步逻辑 - 只在数据变化且初始化完成后触发
+  useEffect(() => {
+    const spaceId = (settings as any)?.syncSpace || undefined;
+    if (spaceId && hasSynced && !isBulkUpdating) {
+      const spaceCtx = { spaceId } as const;
+      upsertSnapshot({ workSettings: settings, workDays }, spaceCtx);
+    }
+  }, [settings, workDays, hasSynced, isBulkUpdating]);
 
   // 初始化/刷新当前月数据（幂等且不重复）
   useEffect(() => {
@@ -206,7 +280,10 @@ function App() {
         {showOcr && (
           <div className="modal-overlay" onClick={() => setShowOcr(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <OcrImporter onImport={(items, overwrite) => {
+              <OcrImporter onImport={async (items, overwrite) => {
+                // 开启批量更新保护
+                setIsBulkUpdating(true);
+                
                 // 同步导入逻辑
                 const currentYear = currentMonth.getFullYear();
                 const currentMon = currentMonth.getMonth();
@@ -306,10 +383,8 @@ function App() {
                     return newSettings;
                   });
                 }
-                setShowOcr(false);
-                // 成功提示（面包条）
-                showToast(`OCR 导入成功：${imported}/${items.length} 条`);
-                // 自动请假：在识别日期范围内的工作日若无记录则标记为请假
+                
+                // 自动请假：在识别日期范围内的工作日若无记录则标记为请假（批量更新期间完成）
                 if (recognizedSet.size > 0) {
                   const sorted = Array.from(recognizedSet).sort();
                   const first = new Date(sorted[0]);
@@ -327,6 +402,15 @@ function App() {
                     }
                   }
                 }
+                
+                // 批量更新完成，关闭保护（延迟让统一同步逻辑处理最终同步）
+                setTimeout(() => {
+                  setIsBulkUpdating(false);
+                }, 100);
+                
+                setShowOcr(false);
+                // 成功提示（面包条）
+                showToast(`OCR 导入成功：${imported}/${items.length} 条`);
               }} />
             </div>
           </div>

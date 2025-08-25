@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
     "@types/react-calendar": "^4.1.0",
     "date-fns": "^4.1.0",
     "react": "^19.1.1",
