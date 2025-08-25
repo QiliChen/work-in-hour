@@ -1,11 +1,12 @@
 import React from 'react';
-import type { WorkStats as WorkStatsType } from '../types';
+import type { WorkStats as WorkStatsType, WorkSettings as WorkSettingsType } from '../types';
 
 interface WorkStatsProps {
   stats: WorkStatsType;
+  settings: WorkSettingsType;
 }
 
-const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
+const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
   const formatHours = (hours: number) => hours.toFixed(1);
 
   return (
@@ -58,7 +59,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
             <div className="breakdown-content">
               <div className="breakdown-label">工作日天数</div>
               <div className="breakdown-value">{stats.normalWeekDays} 天</div>
-              <div className="breakdown-note">11小时/天</div>
+              <div className="breakdown-note">{settings.normalHours}小时/天</div>
             </div>
           </div>
           
@@ -67,7 +68,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
             <div className="breakdown-content">
               <div className="breakdown-label">小周天数</div>
               <div className="breakdown-value">{stats.smallWeekDays} 天</div>
-              <div className="breakdown-note">8小时/天</div>
+              <div className="breakdown-note">{settings.smallWeekHours}小时/天</div>
             </div>
           </div>
           
@@ -76,7 +77,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
             <div className="breakdown-content">
               <div className="breakdown-label">工作日请假</div>
               <div className="breakdown-value">{stats.normalWeekLeaveDays} 天</div>
-              <div className="breakdown-note">11小时/天</div>
+              <div className="breakdown-note">{settings.normalHours}小时/天</div>
             </div>
           </div>
           
@@ -85,7 +86,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
             <div className="breakdown-content">
               <div className="breakdown-label">小周请假</div>
               <div className="breakdown-value">{stats.smallWeekLeaveDays} 天</div>
-              <div className="breakdown-note">8小时/天</div>
+              <div className="breakdown-note">{settings.smallWeekHours}小时/天</div>
             </div>
           </div>
         </div>
@@ -100,7 +101,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
           <div className="outlook-card">
             <div className="outlook-header">
               <span className="outlook-title">剩余工作日展望：</span>
-              <span className="outlook-note">工作日11h，小周8h</span>
+              <span className="outlook-note">工作日{settings.normalHours}h，小周{settings.smallWeekHours}h</span>
             </div>
             <div className="outlook-content">
               <div className="outlook-row">
@@ -118,7 +119,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
               <div className="outlook-row">
                 <span>预计可完成：</span>
                 <span className="outlook-value">
-                  {((stats.futureWorkDays - stats.futureSmallWeekDays) * 11 + stats.futureSmallWeekDays * 8)}h
+                  {((stats.futureWorkDays - stats.futureSmallWeekDays) * settings.normalHours + stats.futureSmallWeekDays * settings.smallWeekHours)}h
                 </span>
               </div>
               <div className="outlook-row">
@@ -126,10 +127,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats }) => {
                 <span className={`outlook-value ${(() => {
                   const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;
                   const totalDiff = stats.futureRequiredSum + todayFix - stats.remainingHours;
-                  const isTodayAdded = (stats.todayActualHours > 0 && !stats.todayIsLeave);
-                  const isTodayPredOnly = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0 && stats.todayPred > 0);
-                  const isPositive = totalDiff >= 0;
-                  return (isPositive || isTodayAdded || isTodayPredOnly) ? 'positive' : 'negative';
+                  return totalDiff >= 0 ? 'positive' : 'negative';
                 })()}`}>
                   {(() => {
                     const todayFix = (!stats.todayIsLeave && stats.todayRequiredHours > 0 && stats.todayActualHours === 0) ? stats.todayPred : 0;

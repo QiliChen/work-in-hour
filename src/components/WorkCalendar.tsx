@@ -28,6 +28,9 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
   const [hourInput, setHourInput] = useState('');
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [normalHoursInput, setNormalHoursInput] = useState<string>('');
+  const [smallWeekHoursInput, setSmallWeekHoursInput] = useState<string>('');
   // 菜单固定居中，无需坐标状态
 
   const monthStart = startOfMonth(currentMonth);
@@ -290,6 +293,17 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
           >
             返回本月
           </button>
+          <button 
+            onClick={() => {
+              setNormalHoursInput(String(settings.normalHours ?? 11));
+              setSmallWeekHoursInput(String(settings.smallWeekHours ?? 8));
+              setShowSettings(true);
+            }}
+            className="quick-action-btn"
+            aria-label="设置工时"
+          >
+            ⚙️ 设置
+          </button>
         </div>
         <h2 className="calendar-title">
           {format(currentMonth, 'yyyy年MM月', { locale: zhCN })}
@@ -451,6 +465,53 @@ const WorkCalendar: React.FC<WorkCalendarProps> = ({
               <button onClick={handleHourCancel} className="btn-secondary">
                 取消
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>工时设置</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>工作日工时（h）</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={normalHoursInput}
+                  onChange={(e) => setNormalHoursInput(e.target.value)}
+                  className="hour-input"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#475569', marginBottom: '0.5rem' }}>小周工时（h）</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={smallWeekHoursInput}
+                  onChange={(e) => setSmallWeekHoursInput(e.target.value)}
+                  className="hour-input"
+                />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  const normal = Math.max(0, parseFloat(normalHoursInput) || 0);
+                  const small = Math.max(0, parseFloat(smallWeekHoursInput) || 0);
+                  onUpdateSettings({ ...settings, normalHours: normal, smallWeekHours: small });
+                  setShowSettings(false);
+                }}
+              >
+                保存
+              </button>
+              <button className="btn-secondary" onClick={() => setShowSettings(false)}>取消</button>
             </div>
           </div>
         </div>

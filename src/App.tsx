@@ -84,6 +84,8 @@ function App() {
   // 保存设置到本地存储
   useEffect(() => {
     localStorage.setItem('workSettings', JSON.stringify(settings));
+    // 设置改变后，基于新规则重算当前月 requiredHours 与小周标记
+    recomputeCurrentMonthDays();
   }, [settings]);
 
   // 保存工作数据到本地存储
@@ -182,6 +184,7 @@ function App() {
         <div className="card stats-card">
           <WorkStats
             stats={stats}
+            settings={settings}
           />
         </div>
 
