@@ -95,7 +95,7 @@ CI/CD
 - ☁️ 无账号同步：新增“同步空间码”，多端填同一码即可共享一份云数据
 - 🧹 清空同步空间：本地“清空数据/清空空间码”时支持同时清空云端空间
 - 🧩 快照存储：`workSettings` 与 `workDays` 合并为单条 `snapshot`，一次读写，减少 API 调用
-- 🔐 `syncSpace` 不入库，仅存 `sessionStorage`，防止跨浏览器泄漏
+- 🔐 `syncSpace` 不入库，仅存 `localStorage`，跨浏览器持久化
 - 🛡️ 批量更新保护：OCR 导入期间暂停云写入，结束后只写一次
 - 🧭 修复首次点击日历弹窗闪烁、优化按钮文案“开启/关闭小周/请假”，并限制按钮可见性（周六小周、工作日请假）
 - 🧰 GitHub Actions 注入环境变量（`VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`）以安全构建

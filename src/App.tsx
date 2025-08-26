@@ -13,8 +13,8 @@ function App() {
   const [settings, setSettings] = useState<WorkSettings>(() => {
     const savedSettings = localStorage.getItem('workSettings');
     const base = savedSettings ? JSON.parse(savedSettings) : defaultSettings;
-    // 永远不要从本地持久化还原 syncSpace（只走 sessionStorage）
-    if ((base as any).syncSpace) delete (base as any).syncSpace;
+      // 从本地持久化还原 syncSpace
+  // if ((base as any).syncSpace) delete (base as any).syncSpace;
     return base;
   });
   
@@ -130,27 +130,26 @@ function App() {
     run();
   }, [currentMonth]);
 
-  // 在首次渲染时，用 sessionStorage（仅当前会话）恢复 syncSpace
+  // 在首次渲染时，用 localStorage 恢复 syncSpace
   useEffect(() => {
-    const s = sessionStorage.getItem('syncSpace');
+    const s = localStorage.getItem('syncSpace');
     if (s) {
       setSettings(prev => ({ ...prev, syncSpace: s } as any));
     }
   }, []);
 
-  // 保存设置到本地存储（不持久化 syncSpace）
+  // 保存设置到本地存储（包含 syncSpace）
   useEffect(() => {
-    const { syncSpace: _omit, ...persist } = (settings as any) || {};
-    localStorage.setItem('workSettings', JSON.stringify(persist));
+    localStorage.setItem('workSettings', JSON.stringify(settings));
     // 设置改变后，基于新规则重算当前月 requiredHours 与小周标记
     recomputeCurrentMonthDays();
   }, [settings]);
 
-  // 同步 syncSpace 到 sessionStorage（便于刷新保持，但不会跨浏览器/账号）
+  // 同步 syncSpace 到 localStorage（便于刷新保持，跨浏览器/账号持久化）
   useEffect(() => {
     const spaceId = (settings as any)?.syncSpace || '';
-    if (spaceId) sessionStorage.setItem('syncSpace', spaceId);
-    else sessionStorage.removeItem('syncSpace');
+    if (spaceId) localStorage.setItem('syncSpace', spaceId);
+    else localStorage.removeItem('syncSpace');
   }, [settings?.syncSpace]);
 
   // 保存工作数据到本地存储
