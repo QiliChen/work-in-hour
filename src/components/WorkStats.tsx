@@ -120,7 +120,7 @@ const WorkStats: React.FC<WorkStatsProps> = ({ stats, settings }) => {
                 <span>预计可完成：</span>
                 <span className="outlook-value">
                   {(() => {
-                    // 预计可完成容量：n*11 + b*8（已将今天计入 futureWorkDays/futureSmallWeekDays，无需额外叠加今天）
+                    // 预计可完成容量：剩余工作日（工作日）*11 + 剩余工作日（小周）*8
                     const futureCap = (stats.futureWorkDays - stats.futureSmallWeekDays) * settings.normalHours + stats.futureSmallWeekDays * settings.smallWeekHours;
                     return formatHours(futureCap);
                   })()}h

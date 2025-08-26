@@ -166,18 +166,34 @@ export class WorkTimeCalculator {
     const leaveDays = normalWeekLeaveDays + smallWeekLeaveDays;
 
     // 计算未来的小周天数（包含今天，只要今天需要上班且为小周且未请假）
-    const futureSmallWeekDays = workDays.filter(day => {
+    let futureSmallWeekDays = workDays.filter(day => {
       const dayDate = new Date(day.date);
       const isFutureOrToday = dayDate >= today;
       return isFutureOrToday && day.isSmallWeek && day.requiredHours > 0 && !day.isLeave;
     }).length;
 
+    // 获取今天的工时信息
+    const todayWorkDay = workDays.find(day => day.date === todayStr);
+    const todayRequiredHours = todayWorkDay?.requiredHours || 0;
+    const todayActualHours = todayWorkDay?.hours || 0;
+    const todayIsSmallWeek = todayWorkDay?.isSmallWeek || false;
+    const todayIsLeave = todayWorkDay?.isLeave || false;
+
     // 计算剩余工作日数（包含今天：若今天需要上班且未请假）
-    const futureWorkDays = workDays.filter(day => {
+    let futureWorkDays = workDays.filter(day => {
       const dayDate = new Date(day.date);
       const isFutureOrToday = dayDate >= today;
       return isFutureOrToday && day.requiredHours > 0 && !day.isLeave;
     }).length;
+
+    // 如果今天填了工时，剩余工作日-1，小周天数也相应调整
+    if (todayActualHours > 0) {
+      futureWorkDays = Math.max(0, futureWorkDays - 1);
+      // 如果今天是小周，小周天数也要-1
+      if (todayIsSmallWeek && todayRequiredHours > 0 && !todayIsLeave) {
+        futureSmallWeekDays = Math.max(0, futureSmallWeekDays - 1);
+      }
+    }
 
     // 未来（不含今天）可完成容量（按每天的 requiredHours 精确求和）
     const futureRequiredSum = workDays.reduce((sum, day) => {
@@ -188,14 +204,6 @@ export class WorkTimeCalculator {
       }
       return sum;
     }, 0);
-
-    // 获取今天的工时信息
-    // todayStr 已在上方声明
-    const todayWorkDay = workDays.find(day => day.date === todayStr);
-    const todayRequiredHours = todayWorkDay?.requiredHours || 0;
-    const todayActualHours = todayWorkDay?.hours || 0;
-    const todayIsSmallWeek = todayWorkDay?.isSmallWeek || false;
-    const todayIsLeave = todayWorkDay?.isLeave || false;
 
     // 今天的预测与使用值（在获取信息之后计算）
     const todayPred = (!todayIsLeave && todayRequiredHours > 0) ? todayRequiredHours : 0;
